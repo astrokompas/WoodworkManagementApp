@@ -1,0 +1,237 @@
+﻿<Page x:Class="WoodworkManagementApp.Pages.ProductsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:WoodworkManagementApp.Pages"
+      mc:Ignorable="d"
+      Title="Produkty">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <Border Grid.Row="0" 
+                Background="#625424"
+                Margin="0,0,0,30">
+            <TextBlock Text="Produkty" 
+                      FontSize="32"
+                      FontWeight="Bold"
+                      Foreground="White"
+                      Margin="20,15"/>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="20,0,20,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Action Buttons -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Import/Export buttons -->
+                <StackPanel Grid.Column="0" 
+                           Orientation="Horizontal" 
+                           VerticalAlignment="Center">
+                    <Button Command="{Binding ImportExcelCommand}"
+                            Style="{StaticResource ActionButton}"
+                            Width="40" Height="40"
+                            Padding="0"
+                            ToolTip="Import Excel">
+                        <Image Source="/Resources/import.png" 
+                               Width="20" 
+                               Height="20"/>
+                    </Button>
+                    <Button Command="{Binding ExportExcelCommand}"
+                            Style="{StaticResource ActionButton}"
+                            Width="40" Height="40"
+                            Padding="0"
+                            Margin="10,0,0,0"
+                            ToolTip="Export Excel">
+                        <Image Source="/Resources/export.png" 
+                               Width="20" 
+                               Height="20"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Add Product button -->
+                <Button Grid.Column="2"
+                        Command="{Binding AddProductCommand}"
+                        Style="{StaticResource ActionButton}"
+                        Height="45">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Resources/add.png" 
+                               Width="20" 
+                               Height="20" 
+                               Margin="0,0,10,0"/>
+                        <TextBlock Text="Dodaj Produkt"
+                                 FontSize="16"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Search Box -->
+            <Grid Grid.Row="1" 
+                  Style="{StaticResource SearchBoxContainer}"
+                  HorizontalAlignment="Left"
+                  Width="400">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Image Source="/Resources/search.png" 
+                       Width="16" 
+                       Height="16" 
+                       Margin="10,0,10,0"/>
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource SearchBox}">
+                    <TextBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#5A9E85"/>
+                            <Setter Property="CornerRadius" Value="4"/>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
+
+                <Button Grid.Column="2"
+                        Command="{Binding ClearSearchCommand}"
+                        Style="{StaticResource ActionButton}"
+                        Width="35" Height="35"
+                        Padding="0"
+                        Margin="5,0,0,0"
+                        ToolTip="Wyczyść"
+                        Visibility="{Binding SearchText, Converter={StaticResource StringToVisibilityConverter}}">
+                    <Image Source="/Resources/clear.png" 
+                           Width="16" 
+                           Height="16"/>
+                </Button>
+            </Grid>
+
+            <!-- Products List -->
+            <ScrollViewer Grid.Row="2" 
+                          Style="{StaticResource ScrollViewer}"
+                          Margin="0,20,0,0">
+                <ItemsControl ItemsSource="{Binding ProductsView}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource ProductCard}"
+                                    Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="34"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Move Buttons -->
+                                    <Grid Grid.Column="0" 
+                                          Margin="0,0,10,0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Button Grid.Row="1"
+                                                Command="{Binding DataContext.MoveUpCommand, 
+                                                RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource MoveButton}">
+                                            <Image Source="/Resources/up.png" 
+                                                   Width="16" 
+                                                   Height="16"/>
+                                        </Button>
+                                        <Button Grid.Row="2"
+                                                Command="{Binding DataContext.MoveDownCommand, 
+                                                RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource MoveButton}"
+                                                Margin="0,5,0,0">
+                                            <Image Source="/Resources/down.png" 
+                                                   Width="16" 
+                                                   Height="16"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Product Info -->
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Name}" 
+                                                 Style="{StaticResource ProductName}"/>
+                                        <StackPanel Orientation="Horizontal" 
+                                                  Margin="0,5,0,0">
+                                            <TextBlock Text="Cena (m³): " 
+                                                     Style="{StaticResource ProductLabel}"/>
+                                            <TextBlock Text="{Binding PricePerM3, StringFormat=N2}" 
+                                                     Style="{StaticResource ProductValue}"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" 
+                                                  Margin="0,5,0,0">
+                                            <TextBlock Text="Rabat od: " 
+                                                     Style="{StaticResource ProductLabel}"/>
+                                            <TextBlock Text="{Binding Discount, StringFormat={}{0} m3}" 
+                                                     Style="{StaticResource ProductValue}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Action Buttons -->
+                                    <StackPanel Grid.Column="2" 
+                                              Orientation="Horizontal"
+                                              VerticalAlignment="Center">
+                                        <Button Command="{Binding DataContext.EditProductCommand, 
+                                                RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ActionButton}"
+                                                Width="35" Height="35"
+                                                Padding="0">
+                                            <Image Source="/Resources/edit.png" 
+                                                   Width="16" 
+                                                   Height="16"/>
+                                        </Button>
+                                        <Button Command="{Binding DataContext.DuplicateProductCommand, 
+                                                RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ActionButton}"
+                                                Width="35" Height="35"
+                                                Margin="5,0,0,0"
+                                                Padding="0">
+                                            <Image Source="/Resources/duplicate.png" 
+                                                   Width="16" 
+                                                   Height="16"/>
+                                        </Button>
+                                        <Button Command="{Binding DataContext.DeleteProductCommand, 
+                                                RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ActionButton}"
+                                                Width="35" Height="35"
+                                                Padding="0"
+                                                Margin="5,0,0,0">
+                                            <Image Source="/Resources/delete.png" 
+                                                   Width="16" 
+                                                   Height="16"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

@@ -4,9 +4,152 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WoodworkManagementApp"
+        xmlns:pages="clr-namespace:WoodworkManagementApp.Pages"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Akacjowy Kalkulator"
+        Icon="pack://application:,,,/Resources/icon.ico"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MinWidth="1300"
+        MinHeight="800"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
 
+    <WindowChrome.WindowChrome>
+        <WindowChrome 
+            CaptionHeight="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False"
+            CornerRadius="8"
+            GlassFrameThickness="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Grid x:Name="RootGrid" Margin="0">
+        <Border x:Name="MainWindowBorder" 
+                BorderThickness="1" 
+                BorderBrush="#346751" 
+                Background="#B2A365" 
+                CornerRadius="8"
+                Margin="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Custom Window Title Bar -->
+                <Border Background="#262319" 
+                        Grid.Row="0" 
+                        MouseLeftButtonDown="Border_MouseLeftButtonDown" 
+                        CornerRadius="8,8,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Akacjowy Kalkulator" 
+                                 Foreground="#B2A365" 
+                                 VerticalAlignment="Center" 
+                                 Margin="15,0,0,0"
+                                 FontSize="16"
+                                 FontWeight="Medium"/>
+
+                        <StackPanel Grid.Column="1" 
+                                  Orientation="Horizontal" 
+                                  HorizontalAlignment="Right">
+                            <Button x:Name="MinimizeButton" 
+                                    Click="MinimizeButton_Click"
+                                    Style="{StaticResource WindowControlButton}"
+                                    Tag="/Resources/minimize.png"/>
+                            <Button x:Name="MaximizeButton" 
+                                    Click="MaximizeButton_Click"
+                                    Style="{StaticResource WindowControlButton}"
+                                    Tag="/Resources/maximize.png"/>
+                            <Button x:Name="CloseButton" 
+                                    Click="CloseButton_Click"
+                                    Style="{StaticResource WindowControlButton}"
+                                    Tag="/Resources/exit.png"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Main Content Area -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Navigation Panel -->
+                    <Border Background="#262319">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Navigation Buttons -->
+                            <StackPanel Grid.Row="0">
+                                <RadioButton Style="{StaticResource NavIconButton}"
+                                             Tag="Oferta"
+                                             IsChecked="True"
+                                             Checked="NavButton_Checked">
+                                    <Image Source="/Resources/price.png" 
+                                           Width="48" 
+                                           Height="48"/>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource NavIconButton}"
+                                             Tag="Przelicznik"
+                                             Checked="NavButton_Checked">
+                                    <Image Source="/Resources/calc.png" 
+                                           Width="48" 
+                                           Height="48"/>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource NavIconButton}"
+                                             Tag="Zamówienia"
+                                             Checked="NavButton_Checked">
+                                    <Image Source="/Resources/orders.png" 
+                                           Width="48" 
+                                           Height="48"/>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource NavIconButton}"
+                                             Tag="Produkty"
+                                             Checked="NavButton_Checked">
+                                    <Image Source="/Resources/products.png" 
+                                           Width="48" 
+                                           Height="48"/>
+                                </RadioButton>
+                            </StackPanel>
+
+                            <!-- Logo Image -->
+                            <TextBlock Grid.Row="2" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Bottom" 
+                                       Margin="10">
+                                <Hyperlink NavigateUri="https://swiatakacji.pl" 
+                                           RequestNavigate="Hyperlink_RequestNavigate"
+                                           Style="{StaticResource Hyperlink}">
+                                    <Image Source="/Resources/logo.png" 
+                                           Width="78" 
+                                           Height="78"/>
+                                </Hyperlink>
+                            </TextBlock>
+
+                        </Grid>
+                    </Border>
+
+                    <!-- Page Content -->
+                    <Frame Grid.Column="1" 
+                           x:Name="MainFrame" 
+                           NavigationUIVisibility="Hidden"
+                           Background="#B2A365"/>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

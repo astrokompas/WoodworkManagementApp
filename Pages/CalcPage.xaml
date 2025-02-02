@@ -1,0 +1,311 @@
+﻿<Page x:Class="WoodworkManagementApp.Pages.CalcPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:WoodworkManagementApp.Pages"
+      xmlns:uc="clr-namespace:WoodworkManagementApp.UserControls"
+      mc:Ignorable="d"
+      Title="Przelicznik">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Grid.ColumnSpan="3"
+                Background="#625424">
+            <TextBlock Text="Przelicznik" 
+                      FontSize="32"
+                      FontWeight="Bold"
+                      Foreground="White"
+                      Margin="20,15"/>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1"
+              Grid.Column="0"
+              Margin="20,30,20,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Unit Conversions -->
+            <Border Grid.Row="0" 
+                    Style="{StaticResource ProductCard}"
+                    Margin="0,0,0,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Millimeters -->
+                    <Grid Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Text="{Binding MillimetersInput, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Milimetry"
+                                Width="150"/>
+                        <TextBlock Grid.Column="1"
+                                  Text="{Binding MetersFromMm, StringFormat={}{0:N3} m}"
+                                  Margin="10,0,0,0"
+                                  FontSize="18"
+                                  FontWeight="Bold"
+                                  Foreground="#262319"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Centimeters -->
+                    <Grid Grid.Column="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Text="{Binding CentimetersInput, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Centymetry"
+                                Width="150"/>
+                        <TextBlock Grid.Column="1"
+                                  Text="{Binding MetersFromCm, StringFormat={}{0:N3} m}"
+                                  Margin="10,0,0,0"
+                                  FontSize="18"
+                                  FontWeight="Bold"
+                                  Foreground="#262319"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Decimeters -->
+                    <Grid Grid.Column="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Text="{Binding DecimetersInput, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Decymetry"
+                                Width="150"/>
+                        <TextBlock Grid.Column="1"
+                                  Text="{Binding MetersFromDm, StringFormat={}{0:N3} m}"
+                                  Margin="10,0,0,0"
+                                  FontSize="18"
+                                  FontWeight="Bold"
+                                  Foreground="#262319"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Cuboid Section -->
+            <Border Grid.Row="1" 
+                    Style="{StaticResource ProductCard}"
+                    Margin="0,0,0,20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Prostopadłościan"
+                             FontSize="22"
+                             FontWeight="Bold"
+                             HorizontalAlignment="Center"
+                             Foreground="#262319"
+                             Margin="0,0,0,20"/>
+
+                    <!-- Dimensions -->
+                    <Grid Grid.Row="1" 
+                          Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                                Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Szerokość (m)"
+                                HorizontalAlignment="Center"/>
+
+                        <TextBox Grid.Column="2"
+                                Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Grubość (m)"
+                                HorizontalAlignment="Center"/>
+
+                        <TextBox Grid.Column="4"
+                                Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Długość (m)"
+                                HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Quantity -->
+                    <TextBox Grid.Row="2"
+                            Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource InputBoxWithPlaceholder}"
+                            Tag="Ilość"
+                            Width="150"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,15"/>
+
+                    <!-- Volume Result -->
+                    <TextBlock Grid.Row="3"
+                             Text="{Binding CuboidVolume, StringFormat=Objętość: {0:N3} m³}"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             HorizontalAlignment="Center"
+                             Foreground="#262319"
+                             Margin="0,0,0,20"/>
+
+                    <!-- Product Selection -->
+                    <Grid Grid.Row="4"
+                          HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox ItemsSource="{Binding Products}"
+                                 SelectedItem="{Binding SelectedCuboidProduct}"
+                                 DisplayMemberPath="Name"
+                                 Style="{StaticResource ComboBox}"
+                                 Height="35"
+                                 Width="200"/>
+
+                        <Button Grid.Column="1"
+                                Command="{Binding AddCuboidToCartCommand}"
+                                Style="{StaticResource ActionButton}"
+                                Width="40" Height="35"
+                                Margin="10,0,0,0"
+                                ToolTip="Dodaj do koszyka">
+                            <Image Source="/Resources/add.png"
+                                   Width="16"
+                                   Height="16"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Cylinder Section -->
+            <Border Grid.Row="2" 
+                    Style="{StaticResource ProductCard}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Walec"
+                             FontSize="22"
+                             FontWeight="Bold"
+                             HorizontalAlignment="Center"
+                             Foreground="#262319"
+                             Margin="0,0,0,20"/>
+
+                    <!-- Dimensions -->
+                    <Grid Grid.Row="1" 
+                          Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                                Text="{Binding Radius, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Promień (m)"
+                                HorizontalAlignment="Center"/>
+
+                        <TextBox Grid.Column="2"
+                                Text="{Binding CylinderLength, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                Tag="Długość (m)"
+                                HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Quantity -->
+                    <TextBox Grid.Row="2"
+                            Text="{Binding CylinderQuantity, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource InputBoxWithPlaceholder}"
+                            Tag="Ilość"
+                            Width="150"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,15"/>
+
+                    <!-- Volume Result -->
+                    <TextBlock Grid.Row="3"
+                             Text="{Binding CylinderVolume, StringFormat=Objętość: {0:N3} m³}"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             HorizontalAlignment="Center"
+                             Foreground="#262319"
+                             Margin="0,0,0,20"/>
+
+                    <!-- Product Selection -->
+                    <Grid Grid.Row="4"
+                          HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox ItemsSource="{Binding Products}"
+                                 SelectedItem="{Binding SelectedCylinderProduct}"
+                                 DisplayMemberPath="Name"
+                                 Style="{StaticResource ComboBox}"
+                                 Height="35"
+                                 Width="200"/>
+
+                        <Button Grid.Column="1"
+                                Command="{Binding AddCylinderToCartCommand}"
+                                Style="{StaticResource ActionButton}"
+                                Width="40" Height="35"
+                                Margin="10,0,0,0"
+                                ToolTip="Dodaj do koszyka">
+                            <Image Source="/Resources/add.png"
+                                   Width="16"
+                                   Height="16"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Cart Panel -->
+        <uc:CartPanel Grid.Row="1"
+                      Grid.Column="1"
+                      Grid.ColumnSpan="2"
+                      DataContext="{Binding}"/>
+    </Grid>
+</Page>
