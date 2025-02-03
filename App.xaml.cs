@@ -47,6 +47,8 @@ namespace WoodworkManagementApp
             services.AddSingleton<IProductService, ProductService>();
             services.AddSingleton<ICartService, CartService>();
             services.AddSingleton<IPriceService, PriceService>();
+            services.AddSingleton<IDocumentService, DocumentService>();
+            services.AddSingleton<IOrdersService, OrdersService>();
 
             services.AddSingleton<IProductsViewModel, ProductsViewModel>();
         }

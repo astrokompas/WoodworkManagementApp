@@ -529,5 +529,72 @@
         </Setter>
     </Style>
 
+    <!-- Calendar Button Style -->
+    <Style x:Key="CalendarButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+        <Setter Property="Width" Value="35"/>
+        <Setter Property="Height" Value="35"/>
+        <Setter Property="Padding" Value="5"/>
+        <Setter Property="Margin" Value="5,0,0,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Date Picker Text Box -->
+    <Style x:Key="DatePickerTextBox" TargetType="DatePickerTextBox">
+        <Setter Property="Background" Value="#262319"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="10,8"/>
+    </Style>
+
+    <!-- Date Picker -->
+    <Style x:Key="OrderDatePicker" TargetType="DatePicker">
+        <Setter Property="Background" Value="#262319"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Height" Value="35"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DatePicker">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Path=Text, RelativeSource={RelativeSource TemplatedParent}}"
+                             Style="{StaticResource InputBox}"/>
+                        <Button Grid.Column="1"
+                            Style="{StaticResource CalendarButton}">
+                            <Image Source="/Resources/calendar.png"
+                               Width="16"
+                               Height="16"/>
+                        </Button>
+                        <Popup x:Name="PART_Popup" 
+                           StaysOpen="False" 
+                           AllowsTransparency="True"
+                           PlacementTarget="{Binding ElementName=PART_Button}">
+                            <Calendar x:Name="PART_Calendar" 
+                                 Background="#262319"
+                                 BorderBrush="#346751"
+                                 Foreground="White"/>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+    <!-- Product Card in Order -->
+    <Style x:Key="OrderProductCard" TargetType="Border" BasedOn="{StaticResource ProductCard}">
+        <Setter Property="Margin" Value="0,0,0,10"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                <Setter Property="Background" Value="#C4B885"/>
+                <Setter Property="BorderBrush" Value="#346751"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
 
 </ResourceDictionary>

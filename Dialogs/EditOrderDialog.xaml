@@ -1,0 +1,234 @@
+﻿<Window x:Class="WoodworkManagementApp.Dialogs.AddOrderDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edytuj Zamówienie"
+        Height="700"
+        Width="900"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Window.Resources>
+        <Style x:Key="DialogButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="MainBorder"
+            BorderThickness="1" 
+            BorderBrush="#346751" 
+            Background="#B2A365" 
+            CornerRadius="8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom Title Bar -->
+            <Border Background="#262319" 
+                    MouseLeftButtonDown="Border_MouseLeftButtonDown"
+                    CornerRadius="8,8,0,0">
+                <Grid>
+                    <TextBlock Text="Edytuj Zamówienie" 
+                             Foreground="#B2A365" 
+                             VerticalAlignment="Center" 
+                             Margin="15,0,0,0"
+                             FontSize="16"
+                             FontWeight="Medium"/>
+
+                    <Button x:Name="CloseButton" 
+                           Click="CloseButton_Click"
+                           Style="{StaticResource WindowControlButton}"
+                           Tag="/Resources/exit.png"
+                           HorizontalAlignment="Right"/>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Order Details -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Numer zamówienia" Style="{StaticResource InputLabel}"/>
+                        <TextBox Text="{Binding Order.OrderNumber, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBox}"
+                                IsReadOnly="True"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Data utworzenia" Style="{StaticResource InputLabel}"/>
+                        <TextBox Text="{Binding Order.CreationDate, StringFormat=d}"
+                                Style="{StaticResource InputBox}"
+                                IsReadOnly="True"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Creator and Receiver -->
+                <Grid Grid.Row="1" Margin="0,15,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Utworzył" Style="{StaticResource InputLabel}"/>
+                        <TextBox Text="{Binding Order.CreatorName, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Odbiorca" Style="{StaticResource InputLabel}"/>
+                        <TextBox Text="{Binding Order.ReceiverName, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Completion Date and Comments -->
+                <Grid Grid.Row="2" Margin="0,15,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Termin realizacji" Style="{StaticResource InputLabel}"/>
+                        <TextBox Text="{Binding Order.CompletionDate, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBox}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Uwagi" Style="{StaticResource InputLabel}"/>
+                        <TextBox Text="{Binding Order.Comments, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource InputBox}"
+                                TextWrapping="Wrap"
+                                Height="60"
+                                AcceptsReturn="True"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Products List -->
+                <Grid Grid.Row="3" Margin="0,20,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Add Products Button -->
+                    <Button Command="{Binding AddProductsCommand}"
+                            Style="{StaticResource ActionButton}"
+                            Width="72" Height="72"
+                            Padding="16"
+                            HorizontalAlignment="Left"
+                            ToolTip="Dodaj produkty">
+                        <Image Source="/Resources/add.png"
+                               Width="32"
+                               Height="32"/>
+                    </Button>
+
+                    <!-- Products -->
+                    <ScrollViewer Grid.Row="1" 
+                                 Style="{StaticResource ScrollViewer}"
+                                 Margin="0,20,0,0">
+                        <ItemsControl ItemsSource="{Binding Order.Products}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource ProductCard}"
+                                            Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Product.Name}" 
+                                                         Style="{StaticResource ProductName}"/>
+
+                                                <Grid Margin="0,10,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="10"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="10"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBox Grid.Column="0"
+                                                            Text="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                                                            Style="{StaticResource InputBoxWithPlaceholder}"
+                                                            Tag="Kubiki"
+                                                            Width="150"/>
+
+                                                    <TextBox Grid.Column="2"
+                                                            Text="{Binding Pieces, UpdateSourceTrigger=PropertyChanged}"
+                                                            Style="{StaticResource InputBoxWithPlaceholder}"
+                                                            Tag="Sztuki"
+                                                            Width="150"/>
+
+                                                    <TextBox Grid.Column="4"
+                                                            Text="{Binding Discount, UpdateSourceTrigger=PropertyChanged}"
+                                                            Style="{StaticResource InputBoxWithPlaceholder}"
+                                                            Tag="Rabat %"
+                                                            Width="150"/>
+                                                </Grid>
+                                            </StackPanel>
+
+                                            <!-- Delete Button -->
+                                            <Button Grid.Column="1"
+                                                    Command="{Binding DataContext.RemoveProductCommand, 
+                                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Width="35" Height="35"
+                                                    Padding="0"
+                                                    VerticalAlignment="Top">
+                                                <Image Source="/Resources/delete.png"
+                                                       Width="16"
+                                                       Height="16"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- Bottom Buttons -->
+                <StackPanel Grid.Row="4" 
+                          Orientation="Horizontal" 
+                          HorizontalAlignment="Center"
+                          Margin="0,20,0,0">
+                    <Button Content="Zapisz"
+                            Click="ConfirmButton_Click"
+                            Style="{StaticResource DialogButton}"/>
+                    <Button Content="Anuluj"
+                            Click="CloseButton_Click"
+                            Style="{StaticResource DialogButton}"
+                            Margin="20,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
