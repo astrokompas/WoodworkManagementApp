@@ -32,6 +32,8 @@ namespace WoodworkManagementApp.Models
                 _volume = value;
                 CalculatePrices();
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(TotalPrice));
+                OnPropertyChanged(nameof(PricePerPiece));
             }
         }
 
@@ -43,6 +45,7 @@ namespace WoodworkManagementApp.Models
                 _pieces = value;
                 CalculatePrices();
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(PricePerPiece));
             }
         }
 
@@ -54,6 +57,8 @@ namespace WoodworkManagementApp.Models
                 _discount = value;
                 CalculatePrices();
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(TotalPrice));
+                OnPropertyChanged(nameof(PricePerPiece));
             }
         }
 
@@ -79,10 +84,14 @@ namespace WoodworkManagementApp.Models
 
         private void CalculatePrices()
         {
-            if (Product == null || !Volume.HasValue) return;
+            if (Product == null || !Volume.HasValue)
+            {
+                TotalPrice = 0;
+                PricePerPiece = null;
+                return;
+            }
 
             decimal basePrice = Volume.Value * Product.PricePerM3;
-
             if (Volume >= Product.Discount && Discount.HasValue)
             {
                 decimal discountMultiplier = 1 - (Discount.Value / 100);
@@ -99,6 +108,7 @@ namespace WoodworkManagementApp.Models
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

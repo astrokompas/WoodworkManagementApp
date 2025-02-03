@@ -11,7 +11,7 @@ namespace WoodworkManagementApp.Services
     public interface IPriceService
     {
         ObservableCollection<PriceItem> PriceItems { get; }
-        void AddItem(Product product);
+        void AddItem(Product product, decimal? volume = null, int? pieces = null);
         void RemoveItem(PriceItem item);
         void ClearItems();
         Task LoadPriceItemsAsync();

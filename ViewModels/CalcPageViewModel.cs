@@ -385,6 +385,7 @@ namespace WoodworkManagementApp.ViewModels
 
             _cartService.AddItems(items);
             ClearCuboidInputs();
+            CuboidVolume = 0;
             SelectedCuboidProducts.Clear();
             IsCartOpen = true;
         }
@@ -412,6 +413,7 @@ namespace WoodworkManagementApp.ViewModels
 
             _cartService.AddItems(items);
             ClearCylinderInputs();
+            CylinderVolume = 0;
             SelectedCylinderProducts.Clear();
             IsCartOpen = true;
         }
@@ -421,7 +423,6 @@ namespace WoodworkManagementApp.ViewModels
             try
             {
                 var priceService = App.Services.GetRequiredService<IPriceService>();
-
                 priceService.ClearItems();
 
                 foreach (var cartItem in CartItems)
@@ -429,21 +430,11 @@ namespace WoodworkManagementApp.ViewModels
                     var product = Products.FirstOrDefault(p => p.Name == cartItem.ProductName);
                     if (product != null)
                     {
-                        var priceItem = new PriceItem
-                        {
-                            Product = product,
-                            Volume = cartItem.Volume,
-                            Pieces = cartItem.Quantity
-                        };
-
-                        priceService.AddItem(product);
-
-                        var addedItem = priceService.PriceItems.LastOrDefault();
-                        if (addedItem != null)
-                        {
-                            addedItem.Volume = cartItem.Volume;
-                            addedItem.Pieces = cartItem.Quantity;
-                        }
+                        priceService.AddItem(
+                            product,
+                            cartItem.Volume,
+                            cartItem.Quantity
+                        );
                     }
                 }
 
@@ -451,13 +442,9 @@ namespace WoodworkManagementApp.ViewModels
                 IsCartOpen = false;
 
                 var mainWindow = Application.Current.MainWindow as MainWindow;
-                if (mainWindow != null)
+                if (mainWindow?.FindName("PricePageButton") is RadioButton pricePageButton)
                 {
-                    var pricePageButton = mainWindow.FindName("PricePageButton") as RadioButton;
-                    if (pricePageButton != null)
-                    {
-                        pricePageButton.IsChecked = true;
-                    }
+                    pricePageButton.IsChecked = true;
                 }
             }
             catch (Exception ex)

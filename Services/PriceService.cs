@@ -28,11 +28,20 @@ namespace WoodworkManagementApp.Services
 
         public ObservableCollection<PriceItem> PriceItems => _priceItems;
 
-        public void AddItem(Product product)
+        public void AddItem(Product product, decimal? volume = null, int? pieces = null)
         {
-            var newItem = new PriceItem { Product = product };
-            _dispatcher.Invoke(() => _priceItems.Add(newItem));
-            SavePriceItemsAsync().ConfigureAwait(false);
+            var newItem = new PriceItem
+            {
+                Product = product,
+                Volume = volume,
+                Pieces = pieces
+            };
+
+            _dispatcher.Invoke(() =>
+            {
+                _priceItems.Add(newItem);
+                SavePriceItemsAsync().ConfigureAwait(false);
+            });
         }
 
         public void RemoveItem(PriceItem item)

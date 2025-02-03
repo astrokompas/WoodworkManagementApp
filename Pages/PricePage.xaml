@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
@@ -39,7 +40,7 @@
             <Button Grid.Column="1"
                     Command="{Binding AddProductsCommand}"
                     Style="{StaticResource ActionButton}"
-                    Width="80" Height="80"
+                    Width="72" Height="72"
                     Padding="16"
                     HorizontalAlignment="Center"
                     ToolTip="Dodaj produkty">
@@ -53,7 +54,7 @@
             <Button Grid.Column="2"
                     Command="{Binding ClearItemsCommand}"
                     Style="{StaticResource ActionButton}"
-                    Width="80" Height="80"
+                    Width="72" Height="72"
                     Padding="16"
                     Margin="20,0,0,0"
                     ToolTip="Wyczyść wszystko"
@@ -186,5 +187,93 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+        <!-- Summary Section -->
+        <Border Grid.Row="3" 
+        Background="#346751"
+            Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Volume -->
+                <StackPanel Grid.Column="0" 
+                    Margin="0,0,10,0">
+                    <TextBlock Text="Całkowita ilość m³"
+                      Foreground="#D7CFA0"
+                      FontSize="14"
+                      Margin="0,0,0,5"/>
+                    <TextBlock Text="{Binding TotalVolume, StringFormat={}{0:N3} m³}"
+                      Foreground="White"
+                      FontSize="18"
+                      FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Total Pieces -->
+                <StackPanel Grid.Column="1"
+                    Margin="10,0">
+                    <TextBlock Text="Całkowita ilość sztuk"
+                      Foreground="#D7CFA0"
+                      FontSize="14"
+                      Margin="0,0,0,5"/>
+                    <TextBlock Text="{Binding TotalPieces}"
+                      Foreground="White"
+                      FontSize="18"
+                      FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Total Discount -->
+                <StackPanel Grid.Column="2"
+                    Margin="10,0">
+                    <TextBlock Text="Suma udzielonego rabatu"
+                      Foreground="#D7CFA0"
+                      FontSize="14"
+                      Margin="0,0,0,5"/>
+                    <TextBlock Text="{Binding TotalDiscountAmount, StringFormat={}{0:N2} zł}"
+                      Foreground="White"
+                      FontSize="18"
+                      FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Total Price -->
+                <StackPanel Grid.Column="3"
+                    Margin="10,0,0,0">
+                    <TextBlock Text="Całkowita cena"
+                      Foreground="#D7CFA0"
+                      FontSize="14"
+                      Margin="0,0,0,5"/>
+                    <TextBlock Text="{Binding TotalPrice, StringFormat={}{0:N2} zł}"
+                      Foreground="White"
+                      FontSize="18"
+                      FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Generate Order Button -->
+                <Button Grid.Column="4"
+                        Margin="20,0,0,0"
+                        Command="{Binding GenerateOrderCommand}"
+                        Style="{StaticResource ActionButton}"
+                        Height="45"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        FontSize="16"
+                        FontWeight="SemiBold">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Resources/orders.png"
+                               Width="20"
+                               Height="20"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,8,0"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="Generuj zamówienie"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
     </Grid>
 </Page>
