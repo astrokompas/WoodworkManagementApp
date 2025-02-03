@@ -156,6 +156,9 @@ namespace WoodworkManagementApp
                     case "Przelicznik":
                         MainFrame.Navigate(new CalcPage());
                         break;
+                    case "Zamówienia":
+                        MainFrame.Navigate(new OrdersPage());
+                        break;
                 }
             }
         }
