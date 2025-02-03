@@ -175,16 +175,16 @@
                                                  Style="{StaticResource ProductName}"/>
                                         <StackPanel Orientation="Horizontal" 
                                                   Margin="0,5,0,0">
-                                            <TextBlock Text="Cena (m³): " 
+                                            <TextBlock Text="Cena: " 
                                                      Style="{StaticResource ProductLabel}"/>
-                                            <TextBlock Text="{Binding PricePerM3, StringFormat=N2}" 
+                                            <TextBlock Text="{Binding PricePerM3, StringFormat={}{0} zł/m³}" 
                                                      Style="{StaticResource ProductValue}"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" 
                                                   Margin="0,5,0,0">
                                             <TextBlock Text="Rabat od: " 
                                                      Style="{StaticResource ProductLabel}"/>
-                                            <TextBlock Text="{Binding Discount, StringFormat={}{0} m3}" 
+                                            <TextBlock Text="{Binding Discount, StringFormat={}{0} m³}"
                                                      Style="{StaticResource ProductValue}"/>
                                         </StackPanel>
                                     </StackPanel>

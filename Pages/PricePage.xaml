@@ -2,14 +2,175 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:WoodworkManagementApp.Pages"
-      mc:Ignorable="d" 
-      Background="#B2A365"
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="PricePage">
+      mc:Ignorable="d"
+      Title="Oferta">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="#625424">
+            <Grid>
+                <TextBlock Text="Oferta" 
+                          FontSize="32"
+                          FontWeight="Bold"
+                          Foreground="White"
+                          Margin="20,15"/>
+            </Grid>
+        </Border>
+
+        <!-- Buttons Grid -->
+        <Grid Grid.Row="1" Margin="0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Add Button -->
+            <Button Grid.Column="1"
+                    Command="{Binding AddProductsCommand}"
+                    Style="{StaticResource ActionButton}"
+                    Width="80" Height="80"
+                    Padding="16"
+                    HorizontalAlignment="Center"
+                    ToolTip="Dodaj produkty">
+                <Image Source="/Resources/add.png"
+                       Width="32"
+                       Height="32"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
+            </Button>
+
+            <!-- Clear Button -->
+            <Button Grid.Column="2"
+                    Command="{Binding ClearItemsCommand}"
+                    Style="{StaticResource ActionButton}"
+                    Width="80" Height="80"
+                    Padding="16"
+                    Margin="20,0,0,0"
+                    ToolTip="Wyczyść wszystko"
+                    Visibility="{Binding HasItems, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Image Source="/Resources/clear-cart.png"
+                       Width="32"
+                       Height="32"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
+            </Button>
+        </Grid>
+
+        <!-- Products List -->
+        <ScrollViewer Grid.Row="2" 
+                     Style="{StaticResource ScrollViewer}"
+                     Margin="20,0,20,20">
+            <ItemsControl ItemsSource="{Binding PriceItems}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource ProductCard}"
+                                Margin="0,0,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <!-- Product Info -->
+                                    <TextBlock Text="{Binding Product.Name}" 
+                                             Style="{StaticResource ProductName}"/>
+                                    <TextBlock Text="{Binding Product.PricePerM3, StringFormat=Cena: {0:N2} zł/m³}" 
+                                             Style="{StaticResource ProductValue}"
+                                             Margin="0,5,0,15"/>
+
+                                    <!-- Input Fields Grid -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBox Grid.Column="0"
+                                                Text="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                                Tag="Kubiki"
+                                                Width="150"/>
+
+                                        <TextBox Grid.Column="2"
+                                                Text="{Binding Pieces, UpdateSourceTrigger=PropertyChanged}"
+                                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                                Tag="Sztuki"
+                                                Width="150"/>
+
+                                        <TextBox Grid.Column="4"
+                                                Text="{Binding Discount, UpdateSourceTrigger=PropertyChanged}"
+                                                Style="{StaticResource InputBoxWithPlaceholder}"
+                                                Tag="Rabat %"
+                                                Width="150"/>
+                                    </Grid>
+
+                                    <!-- Results -->
+                                    <Grid Margin="0,15,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="20"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="Cena całkowita:"
+                                                     Style="{StaticResource ProductLabel}"/>
+                                            <TextBlock Text="{Binding TotalPrice, StringFormat={}{0:N2} zł}"
+                                                     Style="{StaticResource ProductValue}"
+                                                     FontSize="18"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Cena za sztukę:"
+                                                     Style="{StaticResource ProductLabel}"/>
+                                            <TextBlock FontSize="18">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ProductValue}">
+                                                        <Setter Property="Text" Value="{Binding PricePerPiece, StringFormat={}{0:N2} zł}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding PricePerPiece}" Value="{x:Null}">
+                                                                <Setter Property="Text" Value="-"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Delete Button -->
+                                <Button Grid.Column="1"
+                                        Command="{Binding DataContext.RemoveItemCommand, 
+                                                RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource ActionButton}"
+                                        Width="35" Height="35"
+                                        VerticalAlignment="Top"
+                                        Padding="0"
+                                        Margin="10,0,0,0">
+                                    <Image Source="/Resources/delete.png"
+                                           Width="16"
+                                           Height="16"/>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </Grid>
 </Page>

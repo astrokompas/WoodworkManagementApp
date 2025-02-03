@@ -66,7 +66,7 @@
                                 Tag="Milimetry"
                                 Width="150"/>
                         <TextBlock Grid.Column="1"
-                                  Text="{Binding MetersFromMm, StringFormat={}{0:N3} m}"
+                                  Text="{Binding MetersFromMm, StringFormat='= {0:N3} m'}"
                                   Margin="10,0,0,0"
                                   FontSize="18"
                                   FontWeight="Bold"
@@ -86,7 +86,7 @@
                                 Tag="Centymetry"
                                 Width="150"/>
                         <TextBlock Grid.Column="1"
-                                  Text="{Binding MetersFromCm, StringFormat={}{0:N3} m}"
+                                  Text="{Binding MetersFromCm, StringFormat='= {0:N3} m'}"
                                   Margin="10,0,0,0"
                                   FontSize="18"
                                   FontWeight="Bold"
@@ -106,7 +106,7 @@
                                 Tag="Decymetry"
                                 Width="150"/>
                         <TextBlock Grid.Column="1"
-                                  Text="{Binding MetersFromDm, StringFormat={}{0:N3} m}"
+                                  Text="{Binding MetersFromDm, StringFormat='= {0:N3} m'}"
                                   Margin="10,0,0,0"
                                   FontSize="18"
                                   FontWeight="Bold"
@@ -138,32 +138,33 @@
 
                     <!-- Dimensions -->
                     <Grid Grid.Row="1" 
-                          Margin="0,0,0,15">
+                          Margin="0,0,0,15"
+                          HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="20"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="20"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <TextBox Grid.Column="0"
-                                Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}"
-                                Style="{StaticResource InputBoxWithPlaceholder}"
-                                Tag="Szerokość (m)"
-                                HorizontalAlignment="Center"/>
+                                 Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputBoxWithPlaceholder}"
+                                 Tag="Szerokość (m)"
+                                 Width="150"/>
 
                         <TextBox Grid.Column="2"
-                                Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}"
-                                Style="{StaticResource InputBoxWithPlaceholder}"
-                                Tag="Grubość (m)"
-                                HorizontalAlignment="Center"/>
+                                 Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputBoxWithPlaceholder}"
+                                 Tag="Grubość (m)"
+                                 Width="150"/>
 
                         <TextBox Grid.Column="4"
-                                Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}"
-                                Style="{StaticResource InputBoxWithPlaceholder}"
-                                Tag="Długość (m)"
-                                HorizontalAlignment="Center"/>
+                                 Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputBoxWithPlaceholder}"
+                                 Tag="Długość (m)"
+                                 Width="150"/>
                     </Grid>
 
                     <!-- Quantity -->
@@ -177,7 +178,7 @@
 
                     <!-- Volume Result -->
                     <TextBlock Grid.Row="3"
-                             Text="{Binding CuboidVolume, StringFormat=Objętość: {0:N3} m³}"
+                             Text="{Binding CuboidVolume, StringFormat='= {0:N3} m³'}"
                              FontSize="18"
                              FontWeight="Bold"
                              HorizontalAlignment="Center"
@@ -186,28 +187,33 @@
 
                     <!-- Product Selection -->
                     <Grid Grid.Row="4"
-                          HorizontalAlignment="Center">
+                            HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <ComboBox ItemsSource="{Binding Products}"
-                                 SelectedItem="{Binding SelectedCuboidProduct}"
-                                 DisplayMemberPath="Name"
-                                 Style="{StaticResource ComboBox}"
-                                 Height="35"
-                                 Width="200"/>
+                        <Button Grid.Column="0"
+                                Command="{Binding ChooseCuboidProductCommand}"
+                                Style="{StaticResource ActionButton}"
+                                Height="35"
+                                Width="200">
+                            <TextBlock Text="{Binding SelectedCuboidProduct.Name, FallbackValue='Wybierz produkt'}"
+                                        TextTrimming="CharacterEllipsis"/>
+                        </Button>
 
-                        <Button Grid.Column="1"
+                        <Button Grid.Column="2"
                                 Command="{Binding AddCuboidToCartCommand}"
                                 Style="{StaticResource ActionButton}"
                                 Width="40" Height="35"
-                                Margin="10,0,0,0"
-                                ToolTip="Dodaj do koszyka">
+                                Padding="8"
+                            ToolTip="Dodaj do koszyka">
                             <Image Source="/Resources/add.png"
                                    Width="16"
-                                   Height="16"/>
+                                   Height="16"
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   Stretch="Uniform"/>
                         </Button>
                     </Grid>
                 </Grid>
@@ -234,24 +240,27 @@
 
                     <!-- Dimensions -->
                     <Grid Grid.Row="1" 
-                          Margin="0,0,0,15">
+                          Margin="0,0,0,15"
+                          HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="20"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <TextBox Grid.Column="0"
                                 Text="{Binding Radius, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{StaticResource InputBoxWithPlaceholder}"
                                 Tag="Promień (m)"
-                                HorizontalAlignment="Center"/>
+                                 Width="150"></TextBox>
 
                         <TextBox Grid.Column="2"
                                 Text="{Binding CylinderLength, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{StaticResource InputBoxWithPlaceholder}"
                                 Tag="Długość (m)"
-                                HorizontalAlignment="Center"/>
+                                 Width="150"></TextBox>
                     </Grid>
 
                     <!-- Quantity -->
@@ -265,7 +274,7 @@
 
                     <!-- Volume Result -->
                     <TextBlock Grid.Row="3"
-                             Text="{Binding CylinderVolume, StringFormat=Objętość: {0:N3} m³}"
+                             Text="{Binding CylinderVolume, StringFormat='= {0:N3} m³'}"
                              FontSize="18"
                              FontWeight="Bold"
                              HorizontalAlignment="Center"
@@ -274,28 +283,33 @@
 
                     <!-- Product Selection -->
                     <Grid Grid.Row="4"
-                          HorizontalAlignment="Center">
+                            HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <ComboBox ItemsSource="{Binding Products}"
-                                 SelectedItem="{Binding SelectedCylinderProduct}"
-                                 DisplayMemberPath="Name"
-                                 Style="{StaticResource ComboBox}"
-                                 Height="35"
-                                 Width="200"/>
+                        <Button Grid.Column="0"
+                                Command="{Binding ChooseCylinderProductCommand}"
+                                Style="{StaticResource ActionButton}"
+                                Height="35"
+                                Width="200">
+                            <TextBlock Text="{Binding SelectedCylinderProduct.Name, FallbackValue='Wybierz produkt'}"
+                                        TextTrimming="CharacterEllipsis"/>
+                        </Button>
 
-                        <Button Grid.Column="1"
+                        <Button Grid.Column="2"
                                 Command="{Binding AddCylinderToCartCommand}"
                                 Style="{StaticResource ActionButton}"
                                 Width="40" Height="35"
-                                Margin="10,0,0,0"
-                                ToolTip="Dodaj do koszyka">
+                                Padding="8"
+                            ToolTip="Dodaj do koszyka">
                             <Image Source="/Resources/add.png"
                                    Width="16"
-                                   Height="16"/>
+                                   Height="16"
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   Stretch="Uniform"/>
                         </Button>
                     </Grid>
                 </Grid>

@@ -53,12 +53,12 @@ namespace WoodworkManagementApp.ViewModels
             ImportExcelCommand = new RelayCommand(ExecuteImportExcel);
             ExportExcelCommand = new RelayCommand(ExecuteExportExcel);
             ClearSearchCommand = new RelayCommand(ExecuteClearSearch);
-
-            Task.Run(Initialize);
         }
 
-        private async Task Initialize()
+        public async Task InitializeAsync()
         {
+            if (_products.Count > 0) return;
+
             try
             {
                 var loadedProducts = await _productService.LoadProductsAsync();
@@ -155,14 +155,20 @@ namespace WoodworkManagementApp.ViewModels
         {
             if (product == null) return;
 
-            await _dispatcher.InvokeAsync(() =>
-            {
-                Products.Remove(product);
-                UpdateOrders();
-            });
-            await SaveChanges();
-        }
+            bool confirmed = MessageDialog.Show(
+                $"Czy na pewno chcesz usunąć produkt \"{product.Name}\"?",
+                "Usuwanie produktu");
 
+            if (confirmed)
+            {
+                await _dispatcher.InvokeAsync(() =>
+                {
+                    Products.Remove(product);
+                    UpdateOrders();
+                });
+                await SaveChanges();
+            }
+        }
 
         private async void ExecuteDuplicateProduct(Product product)
         {
@@ -191,20 +197,20 @@ namespace WoodworkManagementApp.ViewModels
                 Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*",
                 Title = "Select Excel File"
             };
-
             if (dialog.ShowDialog() == true)
             {
-                try
+                if (MessageDialog.Show("Czy na pewno chcesz zaimportować produkty? Ta operacja nadpisze istniejące dane.", "Potwierdzenie importu"))
                 {
-                    await _productService.ImportFromExcelAsync(dialog.FileName);
-                    await Initialize();
-                    MessageBox.Show("Products imported successfully!", "Success",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error importing products: {ex.Message}", "Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    try
+                    {
+                        await _productService.ImportFromExcelAsync(dialog.FileName);
+                        await InitializeAsync();
+                        ConfirmationDialog.Show("Produkty zostały zaimportowane pomyślnie!", "Sukces");
+                    }
+                    catch (Exception ex)
+                    {
+                        ConfirmationDialog.Show($"Błąd podczas importowania produktów: {ex.Message}", "Błąd");
+                    }
                 }
             }
         }
@@ -217,19 +223,16 @@ namespace WoodworkManagementApp.ViewModels
                 DefaultExt = ".xlsx",
                 Title = "Save Excel File"
             };
-
             if (dialog.ShowDialog() == true)
             {
                 try
                 {
                     await _productService.ExportToExcelAsync(dialog.FileName, Products);
-                    MessageBox.Show("Products exported successfully!", "Success",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    ConfirmationDialog.Show("Produkty zostały wyeksportowane pomyślnie!", "Sukces");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error exporting products: {ex.Message}", "Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    ConfirmationDialog.Show($"Błąd podczas eksportowania produktów: {ex.Message}", "Błąd");
                 }
             }
         }

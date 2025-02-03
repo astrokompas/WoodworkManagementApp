@@ -39,7 +39,7 @@ namespace WoodworkManagementApp.Models
             get => _discount;
             set
             {
-                if (value < 0 || value > 100)
+                if (value < 0)
                     throw new ArgumentException("Discount must be between 0 and 100");
                 _discount = value;
                 OnPropertyChanged();

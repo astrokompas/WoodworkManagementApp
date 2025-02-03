@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WoodworkManagementApp.Services;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Threading;
 using WoodworkManagementApp.Helpers;
 using WoodworkManagementApp.Models;
-using System.Runtime.CompilerServices;
+using WoodworkManagementApp.Services;
+using WoodworkManagementApp.ViewModels;
 using System.Windows;
+using WoodworkManagementApp.Dialogs;
 
 
 namespace WoodworkManagementApp.ViewModels
@@ -30,32 +27,27 @@ namespace WoodworkManagementApp.ViewModels
         private decimal _metersFromMm;
         private decimal _metersFromCm;
         private decimal _metersFromDm;
-        private string _mmError;
-        private string _cmError;
-        private string _dmError;
 
         private string _width;
         private string _height;
         private string _length;
         private string _quantity;
         private decimal _cuboidVolume;
-        private string _cuboidError;
         private Product _selectedCuboidProduct;
 
         private string _radius;
         private string _cylinderLength;
         private string _cylinderQuantity;
         private decimal _cylinderVolume;
-        private string _cylinderError;
         private Product _selectedCylinderProduct;
-
-        private ObservableCollection<Product> _products;
 
         public ICommand AddCuboidToCartCommand { get; }
         public ICommand AddCylinderToCartCommand { get; }
         public ICommand RemoveFromCartCommand { get; }
         public ICommand ClearCartCommand { get; }
         public ICommand ToggleCartCommand { get; }
+        public ICommand ChooseCuboidProductCommand { get; }
+        public ICommand ChooseCylinderProductCommand { get; }
 
         public CalcPageViewModel(IProductService productService, ICartService cartService, IProductsViewModel productsViewModel)
         {
@@ -64,11 +56,13 @@ namespace WoodworkManagementApp.ViewModels
             _productsViewModel = productsViewModel;
             _dispatcher = Application.Current.Dispatcher;
 
-            AddCuboidToCartCommand = new RelayCommand(ExecuteAddCuboidToCart, CanAddCuboidToCart);
-            AddCylinderToCartCommand = new RelayCommand(ExecuteAddCylinderToCart, CanAddCylinderToCart);
+            AddCuboidToCartCommand = new RelayCommand(ExecuteAddCuboidToCart);
+            AddCylinderToCartCommand = new RelayCommand(ExecuteAddCylinderToCart);
             RemoveFromCartCommand = new RelayCommand<CartItem>(ExecuteRemoveFromCart);
             ClearCartCommand = new RelayCommand(ExecuteClearCart);
             ToggleCartCommand = new RelayCommand(ExecuteToggleCart);
+            ChooseCuboidProductCommand = new RelayCommand(ExecuteChooseCuboidProduct);
+            ChooseCylinderProductCommand = new RelayCommand(ExecuteChooseCylinderProduct);
 
             Products = _productsViewModel.Products;
 
@@ -107,7 +101,8 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _millimetersInput = value;
-                ValidateAndConvertMillimeters();
+                if (decimal.TryParse(value, out decimal mm))
+                    MetersFromMm = Math.Round(mm / 1000, 3);
                 OnPropertyChanged();
             }
         }
@@ -118,7 +113,8 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _centimetersInput = value;
-                ValidateAndConvertCentimeters();
+                if (decimal.TryParse(value, out decimal cm))
+                    MetersFromCm = Math.Round(cm / 100, 3);
                 OnPropertyChanged();
             }
         }
@@ -129,7 +125,8 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _decimetersInput = value;
-                ValidateAndConvertDecimeters();
+                if (decimal.TryParse(value, out decimal dm))
+                    MetersFromDm = Math.Round(dm / 10, 3);
                 OnPropertyChanged();
             }
         }
@@ -164,42 +161,13 @@ namespace WoodworkManagementApp.ViewModels
             }
         }
 
-        public string MmError
-        {
-            get => _mmError;
-            private set
-            {
-                _mmError = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string CmError
-        {
-            get => _cmError;
-            private set
-            {
-                _cmError = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string DmError
-        {
-            get => _dmError;
-            private set
-            {
-                _dmError = value;
-                OnPropertyChanged();
-            }
-        }
         public string Width
         {
             get => _width;
             set
             {
                 _width = value;
-                ValidateAndCalculateCuboidVolume();
+                CalculateCuboidVolume();
                 OnPropertyChanged();
             }
         }
@@ -210,7 +178,7 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _height = value;
-                ValidateAndCalculateCuboidVolume();
+                CalculateCuboidVolume();
                 OnPropertyChanged();
             }
         }
@@ -221,7 +189,7 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _length = value;
-                ValidateAndCalculateCuboidVolume();
+                CalculateCuboidVolume();
                 OnPropertyChanged();
             }
         }
@@ -232,7 +200,7 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _quantity = value;
-                ValidateAndCalculateCuboidVolume();
+                CalculateCuboidVolume();
                 OnPropertyChanged();
             }
         }
@@ -247,23 +215,13 @@ namespace WoodworkManagementApp.ViewModels
             }
         }
 
-        public string CuboidError
-        {
-            get => _cuboidError;
-            private set
-            {
-                _cuboidError = value;
-                OnPropertyChanged();
-            }
-        }
-
         public string Radius
         {
             get => _radius;
             set
             {
                 _radius = value;
-                ValidateAndCalculateCylinderVolume();
+                CalculateCylinderVolume();
                 OnPropertyChanged();
             }
         }
@@ -274,7 +232,7 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _cylinderLength = value;
-                ValidateAndCalculateCylinderVolume();
+                CalculateCylinderVolume();
                 OnPropertyChanged();
             }
         }
@@ -285,7 +243,7 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _cylinderQuantity = value;
-                ValidateAndCalculateCylinderVolume();
+                CalculateCylinderVolume();
                 OnPropertyChanged();
             }
         }
@@ -296,16 +254,6 @@ namespace WoodworkManagementApp.ViewModels
             private set
             {
                 _cylinderVolume = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string CylinderError
-        {
-            get => _cylinderError;
-            private set
-            {
-                _cylinderError = value;
                 OnPropertyChanged();
             }
         }
@@ -341,137 +289,44 @@ namespace WoodworkManagementApp.ViewModels
 
         public ObservableCollection<CartItem> CartItems => _cartService.CartItems;
 
-        private void ValidateAndConvertMillimeters()
+        private void CalculateCuboidVolume()
         {
-            if (string.IsNullOrWhiteSpace(MillimetersInput))
+            if (decimal.TryParse(Width, out decimal w) &&
+                decimal.TryParse(Height, out decimal h) &&
+                decimal.TryParse(Length, out decimal l) &&
+                decimal.TryParse(Quantity, out decimal q))
             {
-                MetersFromMm = 0;
-                MmError = null;
-                return;
+                CuboidVolume = Math.Round(w * h * l * q, 3);
             }
-
-            if (!decimal.TryParse(MillimetersInput, out decimal mm))
-            {
-                MmError = "Wprowadź poprawną wartość";
-                return;
-            }
-
-            if (mm < 0)
-            {
-                MmError = "Wartość nie może być ujemna";
-                return;
-            }
-
-            MmError = null;
-            MetersFromMm = Math.Round(mm / 1000, 3);
         }
 
-        private void ValidateAndConvertCentimeters()
+        private void CalculateCylinderVolume()
         {
-            if (string.IsNullOrWhiteSpace(CentimetersInput))
+            if (decimal.TryParse(Radius, out decimal r) &&
+                decimal.TryParse(CylinderLength, out decimal l) &&
+                decimal.TryParse(CylinderQuantity, out decimal q))
             {
-                MetersFromCm = 0;
-                CmError = null;
-                return;
+                CylinderVolume = Math.Round((decimal)(Math.PI * Math.Pow((double)r, 2)) * l * q, 3);
             }
-
-            if (!decimal.TryParse(CentimetersInput, out decimal cm))
-            {
-                CmError = "Wprowadź poprawną wartość";
-                return;
-            }
-
-            if (cm < 0)
-            {
-                CmError = "Wartość nie może być ujemna";
-                return;
-            }
-
-            CmError = null;
-            MetersFromCm = Math.Round(cm / 100, 3);
         }
 
-        private void ValidateAndConvertDecimeters()
+        private void ExecuteChooseCuboidProduct()
         {
-            if (string.IsNullOrWhiteSpace(DecimetersInput))
+            var dialog = new ChooseProductDialog(_productsViewModel);
+            if (dialog.ShowDialog() == true)
             {
-                MetersFromDm = 0;
-                DmError = null;
-                return;
+                SelectedCuboidProduct = dialog.SelectedProduct;
             }
-
-            if (!decimal.TryParse(DecimetersInput, out decimal dm))
-            {
-                DmError = "Wprowadź poprawną wartość";
-                return;
-            }
-
-            if (dm < 0)
-            {
-                DmError = "Wartość nie może być ujemna";
-                return;
-            }
-
-            DmError = null;
-            MetersFromDm = Math.Round(dm / 10, 3);
         }
 
-        private void ValidateAndCalculateCuboidVolume()
+        private void ExecuteChooseCylinderProduct()
         {
-            if (string.IsNullOrWhiteSpace(Width) || string.IsNullOrWhiteSpace(Height) ||
-                string.IsNullOrWhiteSpace(Length) || string.IsNullOrWhiteSpace(Quantity))
+            var dialog = new ChooseProductDialog(_productsViewModel);
+            if (dialog.ShowDialog() == true)
             {
-                CuboidVolume = 0;
-                CuboidError = "Wypełnij wszystkie pola";
-                return;
+                SelectedCylinderProduct = dialog.SelectedProduct;
             }
-
-            if (!decimal.TryParse(Width, out decimal w) || !decimal.TryParse(Height, out decimal h) ||
-                !decimal.TryParse(Length, out decimal l) || !decimal.TryParse(Quantity, out decimal q))
-            {
-                CuboidError = "Wprowadź poprawne wartości";
-                return;
-            }
-
-            if (w <= 0 || h <= 0 || l <= 0 || q <= 0)
-            {
-                CuboidError = "Wartości muszą być większe od zera";
-                return;
-            }
-
-            CuboidError = null;
-            CuboidVolume = Math.Round(w * h * l * q, 3);
         }
-
-        private void ValidateAndCalculateCylinderVolume()
-        {
-            if (string.IsNullOrWhiteSpace(Radius) || string.IsNullOrWhiteSpace(CylinderLength) ||
-                string.IsNullOrWhiteSpace(CylinderQuantity))
-            {
-                CylinderVolume = 0;
-                CylinderError = "Wypełnij wszystkie pola";
-                return;
-            }
-
-            if (!decimal.TryParse(Radius, out decimal r) || !decimal.TryParse(CylinderLength, out decimal l) ||
-                !decimal.TryParse(CylinderQuantity, out decimal q))
-            {
-                CylinderError = "Wprowadź poprawne wartości";
-                return;
-            }
-
-            if (r <= 0 || l <= 0 || q <= 0)
-            {
-                CylinderError = "Wartości muszą być większe od zera";
-                return;
-            }
-
-            CylinderError = null;
-            CylinderVolume = Math.Round((decimal)(Math.PI * Math.Pow((double)r, 2)) * l * q, 3);
-        }
-
-        private bool CanAddCuboidToCart() =>
-                CuboidVolume > 0 && SelectedCuboidProduct != null && string.IsNullOrEmpty(CuboidError);
 
         private void ExecuteAddCuboidToCart()
         {
@@ -490,14 +345,6 @@ namespace WoodworkManagementApp.ViewModels
             IsCartOpen = true;
         }
 
-        private void ExecuteToggleCart()
-        {
-            IsCartOpen = !IsCartOpen;
-        }
-
-        private bool CanAddCylinderToCart() =>
-                CylinderVolume > 0 && SelectedCylinderProduct != null && string.IsNullOrEmpty(CylinderError);
-
         private void ExecuteAddCylinderToCart()
         {
             if (SelectedCylinderProduct == null) return;
@@ -513,6 +360,11 @@ namespace WoodworkManagementApp.ViewModels
             _cartService.AddItem(item);
             ClearCylinderInputs();
             IsCartOpen = true;
+        }
+
+        private void ExecuteToggleCart()
+        {
+            IsCartOpen = !IsCartOpen;
         }
 
         private void ExecuteRemoveFromCart(CartItem item)

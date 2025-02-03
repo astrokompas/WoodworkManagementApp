@@ -15,5 +15,6 @@ namespace WoodworkManagementApp.ViewModels
         ObservableCollection<Product> Products { get; }
         ICollectionView ProductsView { get; }
         string SearchText { get; set; }
+        Task InitializeAsync();
     }
 }

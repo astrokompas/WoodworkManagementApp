@@ -13,7 +13,7 @@
         ResizeMode="CanResize"
         AllowsTransparency="True"
         Background="Transparent"
-        MinWidth="1300"
+        MinWidth="1400"
         MinHeight="800"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">

@@ -71,6 +71,7 @@
                             Style="{StaticResource ActionButton}"
                             Width="40" Height="40"
                             Padding="0"
+                            Margin="10,0,0,0"
                             ToolTip="Wyczyść koszyk">
                         <Image Source="/Resources/clear-cart.png" 
                                Width="18" 
@@ -109,12 +110,12 @@
                                             <TextBlock Text="{Binding ProductName}"
                                                      TextWrapping="Wrap"
                                                      FontSize="16"
-                                                     FontWeight="SemiBold"
+                                                     FontWeight="Medium"
                                                      Foreground="#262319"/>
                                             <TextBlock Text="{Binding Volume, StringFormat={}{0:N3} m³}"
                                                      Margin="0,5,0,0"
-                                                     FontSize="14"
-                                                     FontWeight="Medium"
+                                                     FontSize="16"
+                                                     FontWeight="Bold"
                                                      Foreground="#262319"/>
                                         </StackPanel>
 

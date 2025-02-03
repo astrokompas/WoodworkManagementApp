@@ -18,7 +18,7 @@ namespace WoodworkManagementApp
             private set => _services = value;
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
@@ -33,6 +33,9 @@ namespace WoodworkManagementApp
             ConfigureServices(serviceCollection);
             Services = serviceCollection.BuildServiceProvider();
 
+            var productsViewModel = Services.GetRequiredService<IProductsViewModel>();
+            await productsViewModel.InitializeAsync();
+
             var mainWindow = new MainWindow();
             mainWindow.Show();
         }
@@ -43,6 +46,7 @@ namespace WoodworkManagementApp
             services.AddSingleton<ICartManager, CartManager>();
             services.AddSingleton<IProductService, ProductService>();
             services.AddSingleton<ICartService, CartService>();
+            services.AddSingleton<IPriceService, PriceService>();
 
             services.AddSingleton<IProductsViewModel, ProductsViewModel>();
         }

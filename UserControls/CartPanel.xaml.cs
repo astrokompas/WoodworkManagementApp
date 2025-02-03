@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace AkacjowyKalkulator.UserControls
+namespace WoodworkManagementApp.UserControls
 {
     public partial class CartPanel : UserControl
     {

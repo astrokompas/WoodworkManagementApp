@@ -25,10 +25,18 @@ namespace WoodworkManagementApp.Pages
         public CalcPage()
         {
             InitializeComponent();
+            InitializeAsync();
+        }
+
+        private async void InitializeAsync()
+        {
+            var productsViewModel = App.Services.GetRequiredService<IProductsViewModel>();
+            await productsViewModel.InitializeAsync();
+
             DataContext = new CalcPageViewModel(
                 App.Services.GetRequiredService<IProductService>(),
                 App.Services.GetRequiredService<ICartService>(),
-                App.Services.GetRequiredService<IProductsViewModel>()
+                productsViewModel
             );
         }
     }

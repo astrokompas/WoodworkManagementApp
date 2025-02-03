@@ -25,7 +25,7 @@ namespace WoodworkManagementApp.Services
         {
             _appDataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AkacjowyKalkulator"
+                "WoodworkManagementApp"
             );
             EnsureDirectoryExists();
         }

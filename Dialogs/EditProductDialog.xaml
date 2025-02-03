@@ -1,7 +1,6 @@
 ﻿<Window x:Class="WoodworkManagementApp.Dialogs.EditProductDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:validations="clr-namespace:WoodworkManagementApp.Validations"
         Title="Edytuj Produkt"
         Height="400"
         Width="500"
@@ -74,23 +73,17 @@
                             Style="{StaticResource InputBox}">
                         <TextBox.Text>
                             <Binding Path="PricePerM3" UpdateSourceTrigger="PropertyChanged">
-                                <Binding.ValidationRules>
-                                    <validations:DecimalValidationRule/>
-                                </Binding.ValidationRules>
                             </Binding>
                         </TextBox.Text>
                     </TextBox>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Margin="0,0,0,15">
-                    <TextBlock Text="Rabat (>m3)" Style="{StaticResource InputLabel}"/>
+                    <TextBlock Text="Rabat (>m³)" Style="{StaticResource InputLabel}"/>
                     <TextBox x:Name="DiscountTextBox"
                             Style="{StaticResource InputBox}">
                         <TextBox.Text>
                             <Binding Path="Discount" UpdateSourceTrigger="PropertyChanged">
-                                <Binding.ValidationRules>
-                                    <validations:DiscountValidationRule/>
-                                </Binding.ValidationRules>
                             </Binding>
                         </TextBox.Text>
                     </TextBox>
