@@ -95,7 +95,8 @@
 
                             <!-- Navigation Buttons -->
                             <StackPanel Grid.Row="0">
-                                <RadioButton Style="{StaticResource NavIconButton}"
+                                <RadioButton x:Name="PricePageButton"
+                                             Style="{StaticResource NavIconButton}"
                                              Tag="Oferta"
                                              IsChecked="True"
                                              Checked="NavButton_Checked">

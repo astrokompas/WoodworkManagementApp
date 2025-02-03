@@ -18,7 +18,7 @@
                     <Setter Property="BorderBrush" Value="#346751"/>
                     <Setter Property="BorderThickness" Value="1"/>
                 </Trigger>
-                <DataTrigger Binding="{Binding Item.IsSelected}" Value="True">
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
                     <Setter Property="Background" Value="#C4B885"/>
                     <Setter Property="BorderBrush" Value="#346751"/>
                     <Setter Property="BorderThickness" Value="1"/>
@@ -114,7 +114,7 @@
                     <ScrollViewer Grid.Row="2" 
                                  Style="{StaticResource ScrollViewer}"
                                  Margin="0,20,0,0">
-                        <ItemsControl ItemsSource="{Binding ProductsView}">
+                        <ItemsControl ItemsSource="{Binding ProductSelectionViewModels}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <UniformGrid Columns="2" />

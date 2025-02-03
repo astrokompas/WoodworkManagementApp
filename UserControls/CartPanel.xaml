@@ -81,6 +81,7 @@
 
                 <!-- Calculate Button -->
                 <Button DockPanel.Dock="Bottom"
+                        Command="{Binding CalculateCommand}"
                         Content="Oblicz"
                         Style="{StaticResource ActionButton}"
                         Height="45"
@@ -105,27 +106,55 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding ProductName}"
-                                                     TextWrapping="Wrap"
-                                                     FontSize="16"
-                                                     FontWeight="Medium"
-                                                     Foreground="#262319"/>
+                                        <!-- Product Name -->
+                                        <TextBlock Text="{Binding ProductName}"
+                                                      TextWrapping="Wrap"
+                                                      FontSize="16"
+                                                      FontWeight="Medium"
+                                                      Foreground="#262319"/>
+
+                                        <!-- Volume and Quantity Row -->
+                                        <Grid Grid.Row="1" 
+                                                Margin="0,5,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Volume -->
                                             <TextBlock Text="{Binding Volume, StringFormat={}{0:N3} m³}"
-                                                     Margin="0,5,0,0"
-                                                     FontSize="16"
-                                                     FontWeight="Bold"
-                                                     Foreground="#262319"/>
-                                        </StackPanel>
+                                                          FontSize="16"
+                                                          FontWeight="Bold"
+                                                          Foreground="#262319"
+                                                          HorizontalAlignment="Left"/>
 
+                                            <!-- Quantity -->
+                                            <TextBlock Grid.Column="1"
+                                                          FontSize="16"
+                                                          FontWeight="Bold"
+                                                          Foreground="#262319"
+                                                          HorizontalAlignment="Right"
+                                                          Margin="0,0,15,0">
+                                                    <Run Text="x "/>
+                                                    <Run Text="{Binding Quantity, Mode=OneWay}"/>
+                                            </TextBlock>
+                                        </Grid>
+
+                                        <!-- Delete Button -->
                                         <Button Grid.Column="1"
+                                                Grid.RowSpan="2"
                                                 Command="{Binding DataContext.RemoveFromCartCommand, 
                                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource ActionButton}"
                                                 Width="30" Height="30"
-                                                Padding="0">
+                                                Padding="0"
+                                                VerticalAlignment="Center">
                                             <Image Source="/Resources/delete.png" 
                                                    Width="14" 
                                                    Height="14"/>

@@ -1,22 +1,50 @@
-﻿using System.Windows;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using WoodworkManagementApp.Models;
 using WoodworkManagementApp.ViewModels;
 
+
 namespace WoodworkManagementApp.Dialogs
 {
-    public partial class ChooseProductDialog : Window
+    public partial class ChooseProductDialog : Window, INotifyPropertyChanged
     {
         private readonly IProductsViewModel _productsViewModel;
-        public Product SelectedProduct { get; private set; }
+        private readonly HashSet<Product> _selectedProducts;
+        private ObservableCollection<ProductSelectionViewModel> _productSelectionViewModels;
+
+        public IEnumerable<Product> SelectedProducts => _selectedProducts;
+
+        public ObservableCollection<ProductSelectionViewModel> ProductSelectionViewModels
+        {
+            get => _productSelectionViewModels;
+            private set
+            {
+                _productSelectionViewModels = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string SearchText
+        {
+            get => _productsViewModel.SearchText;
+            set => _productsViewModel.SearchText = value;
+        }
 
         public ChooseProductDialog(IProductsViewModel productsViewModel)
         {
             InitializeComponent();
             _productsViewModel = productsViewModel;
-            DataContext = _productsViewModel;
+            _selectedProducts = new HashSet<Product>();
 
+            ProductSelectionViewModels = new ObservableCollection<ProductSelectionViewModel>(
+                _productsViewModel.Products.Select(p => new ProductSelectionViewModel(p))
+            );
+
+            DataContext = this;
             Loaded += ChooseProductDialog_Loaded;
             if (MainBorder != null)
             {
@@ -54,20 +82,52 @@ namespace WoodworkManagementApp.Dialogs
             }
         }
 
+        private void ProductCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement element &&
+                element.DataContext is ProductSelectionViewModel viewModel)
+            {
+                viewModel.IsSelected = !viewModel.IsSelected;
+                if (viewModel.IsSelected)
+                {
+                    _selectedProducts.Add(viewModel.Product);
+                }
+                else
+                {
+                    _selectedProducts.Remove(viewModel.Product);
+                }
+            }
+        }
+
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
+            foreach (var viewModel in ProductSelectionViewModels)
+            {
+                viewModel.IsSelected = false;
+            }
+            _selectedProducts.Clear();
             DialogResult = false;
             Close();
         }
 
-        private void ProductCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement element && element.DataContext is Product product)
+            if (_selectedProducts.Count > 0)
             {
-                SelectedProduct = product;
                 DialogResult = true;
+                foreach (var viewModel in ProductSelectionViewModels)
+                {
+                    viewModel.IsSelected = false;
+                }
                 Close();
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

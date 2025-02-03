@@ -15,6 +15,7 @@ namespace WoodworkManagementApp.Models
         private decimal _volume;
         private decimal _pricePerM3;
         private string _type;
+        private int _quantity;
 
         public string ProductName
         {
@@ -54,6 +55,16 @@ namespace WoodworkManagementApp.Models
             set
             {
                 _type = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int Quantity
+        {
+            get => _quantity;
+            set
+            {
+                _quantity = value;
                 OnPropertyChanged();
             }
         }

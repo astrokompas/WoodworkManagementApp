@@ -9,6 +9,8 @@ using WoodworkManagementApp.Services;
 using WoodworkManagementApp.ViewModels;
 using System.Windows;
 using WoodworkManagementApp.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
+using System.Windows.Controls;
 
 
 namespace WoodworkManagementApp.ViewModels
@@ -41,6 +43,11 @@ namespace WoodworkManagementApp.ViewModels
         private decimal _cylinderVolume;
         private Product _selectedCylinderProduct;
 
+        private ObservableCollection<Product> _selectedCuboidProducts;
+        private ObservableCollection<Product> _selectedCylinderProducts;
+        public bool HasSelectedCuboidProducts => SelectedCuboidProducts?.Any() == true;
+        public bool HasSelectedCylinderProducts => SelectedCylinderProducts?.Any() == true;
+
         public ICommand AddCuboidToCartCommand { get; }
         public ICommand AddCylinderToCartCommand { get; }
         public ICommand RemoveFromCartCommand { get; }
@@ -48,6 +55,7 @@ namespace WoodworkManagementApp.ViewModels
         public ICommand ToggleCartCommand { get; }
         public ICommand ChooseCuboidProductCommand { get; }
         public ICommand ChooseCylinderProductCommand { get; }
+        public ICommand CalculateCommand { get; }
 
         public CalcPageViewModel(IProductService productService, ICartService cartService, IProductsViewModel productsViewModel)
         {
@@ -55,6 +63,8 @@ namespace WoodworkManagementApp.ViewModels
             _cartService = cartService;
             _productsViewModel = productsViewModel;
             _dispatcher = Application.Current.Dispatcher;
+            _selectedCuboidProducts = new ObservableCollection<Product>();
+            _selectedCylinderProducts = new ObservableCollection<Product>();
 
             AddCuboidToCartCommand = new RelayCommand(ExecuteAddCuboidToCart);
             AddCylinderToCartCommand = new RelayCommand(ExecuteAddCylinderToCart);
@@ -63,6 +73,8 @@ namespace WoodworkManagementApp.ViewModels
             ToggleCartCommand = new RelayCommand(ExecuteToggleCart);
             ChooseCuboidProductCommand = new RelayCommand(ExecuteChooseCuboidProduct);
             ChooseCylinderProductCommand = new RelayCommand(ExecuteChooseCylinderProduct);
+
+            CalculateCommand = new RelayCommand(ExecuteCalculate);
 
             Products = _productsViewModel.Products;
 
@@ -82,6 +94,28 @@ namespace WoodworkManagementApp.ViewModels
                     MessageBox.Show($"Error loading cart: {ex.Message}", "Error",
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 });
+            }
+        }
+
+        public ObservableCollection<Product> SelectedCuboidProducts
+        {
+            get => _selectedCuboidProducts;
+            set
+            {
+                _selectedCuboidProducts = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasSelectedCuboidProducts));
+            }
+        }
+
+        public ObservableCollection<Product> SelectedCylinderProducts
+        {
+            get => _selectedCylinderProducts;
+            set
+            {
+                _selectedCylinderProducts = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasSelectedCylinderProducts));
             }
         }
 
@@ -294,7 +328,7 @@ namespace WoodworkManagementApp.ViewModels
             if (decimal.TryParse(Width, out decimal w) &&
                 decimal.TryParse(Height, out decimal h) &&
                 decimal.TryParse(Length, out decimal l) &&
-                decimal.TryParse(Quantity, out decimal q))
+                int.TryParse(Quantity, out int q))
             {
                 CuboidVolume = Math.Round(w * h * l * q, 3);
             }
@@ -304,7 +338,7 @@ namespace WoodworkManagementApp.ViewModels
         {
             if (decimal.TryParse(Radius, out decimal r) &&
                 decimal.TryParse(CylinderLength, out decimal l) &&
-                decimal.TryParse(CylinderQuantity, out decimal q))
+                int.TryParse(CylinderQuantity, out int q))
             {
                 CylinderVolume = Math.Round((decimal)(Math.PI * Math.Pow((double)r, 2)) * l * q, 3);
             }
@@ -315,7 +349,7 @@ namespace WoodworkManagementApp.ViewModels
             var dialog = new ChooseProductDialog(_productsViewModel);
             if (dialog.ShowDialog() == true)
             {
-                SelectedCuboidProduct = dialog.SelectedProduct;
+                SelectedCuboidProducts = new ObservableCollection<Product>(dialog.SelectedProducts);
             }
         }
 
@@ -324,42 +358,113 @@ namespace WoodworkManagementApp.ViewModels
             var dialog = new ChooseProductDialog(_productsViewModel);
             if (dialog.ShowDialog() == true)
             {
-                SelectedCylinderProduct = dialog.SelectedProduct;
+                SelectedCylinderProducts = new ObservableCollection<Product>(dialog.SelectedProducts);
             }
         }
 
         private void ExecuteAddCuboidToCart()
         {
-            if (SelectedCuboidProduct == null) return;
+            if (!HasSelectedCuboidProducts) return;
 
-            var item = new CartItem
+            int quantity;
+            if (!int.TryParse(Quantity, out quantity) || quantity <= 0)
             {
-                ProductName = SelectedCuboidProduct.Name,
-                Volume = CuboidVolume,
-                PricePerM3 = SelectedCuboidProduct.PricePerM3,
-                Type = "Cuboid"
-            };
+                MessageBox.Show("Proszę wprowadzić prawidłową ilość", "Błąd",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            _cartService.AddItem(item);
+            var items = SelectedCuboidProducts.Select(product => new CartItem
+            {
+                ProductName = product.Name,
+                Volume = CuboidVolume,
+                PricePerM3 = product.PricePerM3,
+                Type = "Cuboid",
+                Quantity = quantity
+            });
+
+            _cartService.AddItems(items);
             ClearCuboidInputs();
+            SelectedCuboidProducts.Clear();
             IsCartOpen = true;
         }
 
         private void ExecuteAddCylinderToCart()
         {
-            if (SelectedCylinderProduct == null) return;
+            if (!HasSelectedCylinderProducts) return;
 
-            var item = new CartItem
+            int quantity;
+            if (!int.TryParse(CylinderQuantity, out quantity) || quantity <= 0)
             {
-                ProductName = SelectedCylinderProduct.Name,
-                Volume = CylinderVolume,
-                PricePerM3 = SelectedCylinderProduct.PricePerM3,
-                Type = "Cylinder"
-            };
+                MessageBox.Show("Proszę wprowadzić prawidłową ilość", "Błąd",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            _cartService.AddItem(item);
+            var items = SelectedCylinderProducts.Select(product => new CartItem
+            {
+                ProductName = product.Name,
+                Volume = CylinderVolume,
+                PricePerM3 = product.PricePerM3,
+                Type = "Cylinder",
+                Quantity = quantity
+            });
+
+            _cartService.AddItems(items);
             ClearCylinderInputs();
+            SelectedCylinderProducts.Clear();
             IsCartOpen = true;
+        }
+
+        private void ExecuteCalculate()
+        {
+            try
+            {
+                var priceService = App.Services.GetRequiredService<IPriceService>();
+
+                priceService.ClearItems();
+
+                foreach (var cartItem in CartItems)
+                {
+                    var product = Products.FirstOrDefault(p => p.Name == cartItem.ProductName);
+                    if (product != null)
+                    {
+                        var priceItem = new PriceItem
+                        {
+                            Product = product,
+                            Volume = cartItem.Volume,
+                            Pieces = cartItem.Quantity
+                        };
+
+                        priceService.AddItem(product);
+
+                        var addedItem = priceService.PriceItems.LastOrDefault();
+                        if (addedItem != null)
+                        {
+                            addedItem.Volume = cartItem.Volume;
+                            addedItem.Pieces = cartItem.Quantity;
+                        }
+                    }
+                }
+
+                _cartService.ClearCart();
+                IsCartOpen = false;
+
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    var pricePageButton = mainWindow.FindName("PricePageButton") as RadioButton;
+                    if (pricePageButton != null)
+                    {
+                        pricePageButton.IsChecked = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error while calculating: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void ExecuteToggleCart()
@@ -384,6 +489,7 @@ namespace WoodworkManagementApp.ViewModels
             Length = string.Empty;
             Quantity = string.Empty;
             SelectedCuboidProduct = null;
+            SelectedCuboidProducts.Clear();
         }
 
         private void ClearCylinderInputs()
@@ -392,6 +498,7 @@ namespace WoodworkManagementApp.ViewModels
             CylinderLength = string.Empty;
             CylinderQuantity = string.Empty;
             SelectedCylinderProduct = null;
+            SelectedCylinderProducts.Clear();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

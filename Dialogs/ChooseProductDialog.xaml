@@ -18,6 +18,11 @@
                     <Setter Property="BorderBrush" Value="#346751"/>
                     <Setter Property="BorderThickness" Value="1"/>
                 </Trigger>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="Background" Value="#C4B885"/>
+                    <Setter Property="BorderBrush" Value="#346751"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
@@ -32,6 +37,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Custom Title Bar -->
@@ -108,7 +114,7 @@
                     <ScrollViewer Grid.Row="2" 
                                  Style="{StaticResource ScrollViewer}"
                                  Margin="0,20,0,0">
-                        <ItemsControl ItemsSource="{Binding ProductsView}">
+                        <ItemsControl ItemsSource="{Binding ProductSelectionViewModels}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <UniformGrid Columns="2" />
@@ -144,27 +150,15 @@
                                                          Style="{StaticResource ProductValue}"
                                                          FontSize="16"/>
                                             </StackPanel>
-
-                                            <!-- Category -->
+                                            
+                                            <!-- Discount -->
                                             <StackPanel Grid.Row="2" 
                                                       Orientation="Horizontal"
                                                       Margin="0,8,0,0">
-                                                <TextBlock Text="Kategoria: "
+                                                <TextBlock Text="Rabat od: "
                                                          Style="{StaticResource ProductLabel}"
                                                          FontSize="16"/>
-                                                <TextBlock Text="{Binding Category}"
-                                                         Style="{StaticResource ProductValue}"
-                                                         FontSize="16"/>
-                                            </StackPanel>
-
-                                            <!-- Discount -->
-                                            <StackPanel Grid.Row="3" 
-                                                      Orientation="Horizontal"
-                                                      Margin="0,8,0,0">
-                                                <TextBlock Text="Rabat: "
-                                                         Style="{StaticResource ProductLabel}"
-                                                         FontSize="16"/>
-                                                <TextBlock Text="{Binding Discount, StringFormat={}{0}%}"
+                                                <TextBlock Text="{Binding Discount, StringFormat={}{0:N2} m³}"
                                                          Style="{StaticResource ProductValue}"
                                                          FontSize="16"/>
                                             </StackPanel>
@@ -175,6 +169,17 @@
                         </ItemsControl>
                     </ScrollViewer>
                 </Grid>
+
+                <!-- Bottom Button -->
+                <Button Grid.Row="2"
+                        Content="Wybierz"
+                        Click="ConfirmButton_Click"
+                        Style="{StaticResource ActionButton}"
+                        Height="45"
+                        Width="150"
+                        FontSize="16"
+                        Margin="0,0,0,20"
+                        HorizontalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>

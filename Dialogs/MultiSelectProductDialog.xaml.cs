@@ -1,26 +1,45 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using WoodworkManagementApp.Models;
 using WoodworkManagementApp.ViewModels;
 
+
 namespace WoodworkManagementApp.Dialogs
 {
-    public partial class MultiSelectProductDialog : Window
+    public partial class MultiSelectProductDialog : Window, INotifyPropertyChanged
     {
         private readonly IProductsViewModel _productsViewModel;
         private readonly HashSet<Product> _selectedProducts;
+        private ObservableCollection<ProductSelectionViewModel> _productSelectionViewModels;
 
         public IEnumerable<Product> SelectedProducts => _selectedProducts;
+
+        public ObservableCollection<ProductSelectionViewModel> ProductSelectionViewModels
+        {
+            get => _productSelectionViewModels;
+            private set
+            {
+                _productSelectionViewModels = value;
+                OnPropertyChanged(nameof(ProductSelectionViewModels));
+            }
+        }
 
         public MultiSelectProductDialog(IProductsViewModel productsViewModel)
         {
             InitializeComponent();
             _productsViewModel = productsViewModel;
             _selectedProducts = new HashSet<Product>();
-            DataContext = _productsViewModel;
 
+            ProductSelectionViewModels = new ObservableCollection<ProductSelectionViewModel>(
+                _productsViewModel.Products.Select(p => new ProductSelectionViewModel(p))
+            );
+
+            DataContext = this;
             Loaded += MultiSelectProductDialog_Loaded;
             if (MainBorder != null)
             {
@@ -60,31 +79,28 @@ namespace WoodworkManagementApp.Dialogs
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            // Reset selection state
-            foreach (var product in _productsViewModel.Products)
+            foreach (var viewModel in ProductSelectionViewModels)
             {
-                product.IsSelected = false;
+                viewModel.IsSelected = false;
             }
             _selectedProducts.Clear();
-
             DialogResult = false;
             Close();
         }
 
         private void ProductCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (sender is FrameworkElement element && element.DataContext is Product product)
+            if (sender is FrameworkElement element &&
+                element.DataContext is ProductSelectionViewModel viewModel)
             {
-                // Toggle selection
-                product.IsSelected = !product.IsSelected;
-
-                if (product.IsSelected)
+                viewModel.IsSelected = !viewModel.IsSelected;
+                if (viewModel.IsSelected)
                 {
-                    _selectedProducts.Add(product);
+                    _selectedProducts.Add(viewModel.Product);
                 }
                 else
                 {
-                    _selectedProducts.Remove(product);
+                    _selectedProducts.Remove(viewModel.Product);
                 }
             }
         }
@@ -95,14 +111,19 @@ namespace WoodworkManagementApp.Dialogs
             {
                 DialogResult = true;
 
-                // Reset selection state after saving the selection
-                foreach (var product in _productsViewModel.Products)
+                foreach (var viewModel in ProductSelectionViewModels)
                 {
-                    product.IsSelected = false;
+                    viewModel.IsSelected = false;
                 }
-
                 Close();
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

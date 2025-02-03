@@ -17,5 +17,6 @@ namespace WoodworkManagementApp.Services
         void ClearCart();
         Task LoadCartAsync();
         Task SaveCartAsync();
+        void AddItems(IEnumerable<CartItem> items);
     }
 }

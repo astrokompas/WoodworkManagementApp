@@ -83,10 +83,24 @@
                                 <StackPanel>
                                     <!-- Product Info -->
                                     <TextBlock Text="{Binding Product.Name}" 
-                                             Style="{StaticResource ProductName}"/>
-                                    <TextBlock Text="{Binding Product.PricePerM3, StringFormat=Cena: {0:N2} zł/m³}" 
-                                             Style="{StaticResource ProductValue}"
-                                             Margin="0,5,0,15"/>
+                                                Style="{StaticResource ProductName}"/>
+
+                                    <!-- Price and Discount in one row -->
+                                    <Grid Margin="0,5,0,15">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="20"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" 
+                                                  Text="{Binding Product.PricePerM3, StringFormat=Cena: {0:N2} zł/m³}" 
+                                                  Style="{StaticResource ProductValue}"/>
+
+                                        <TextBlock Grid.Column="2" 
+                                                  Text="{Binding Product.Discount, StringFormat=Rabat od: {0} m³}" 
+                                                  Style="{StaticResource ProductValue}"/>
+                                    </Grid>
 
                                     <!-- Input Fields Grid -->
                                     <Grid>
@@ -99,22 +113,22 @@
                                         </Grid.ColumnDefinitions>
 
                                         <TextBox Grid.Column="0"
-                                                Text="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                                                Style="{StaticResource InputBoxWithPlaceholder}"
-                                                Tag="Kubiki"
-                                                Width="150"/>
+                                                    Text="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                                                    Style="{StaticResource InputBoxWithPlaceholder}"
+                                                    Tag="Kubiki"
+                                                    Width="150"/>
 
                                         <TextBox Grid.Column="2"
-                                                Text="{Binding Pieces, UpdateSourceTrigger=PropertyChanged}"
-                                                Style="{StaticResource InputBoxWithPlaceholder}"
-                                                Tag="Sztuki"
-                                                Width="150"/>
+                                                    Text="{Binding Pieces, UpdateSourceTrigger=PropertyChanged}"
+                                                    Style="{StaticResource InputBoxWithPlaceholder}"
+                                                    Tag="Sztuki"
+                                                    Width="150"/>
 
                                         <TextBox Grid.Column="4"
-                                                Text="{Binding Discount, UpdateSourceTrigger=PropertyChanged}"
-                                                Style="{StaticResource InputBoxWithPlaceholder}"
-                                                Tag="Rabat %"
-                                                Width="150"/>
+                                                    Text="{Binding Discount, UpdateSourceTrigger=PropertyChanged}"
+                                                    Style="{StaticResource InputBoxWithPlaceholder}"
+                                                    Tag="Rabat %"
+                                                    Width="150"/>
                                     </Grid>
 
                                     <!-- Results -->
@@ -159,7 +173,7 @@
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource ActionButton}"
                                         Width="35" Height="35"
-                                        VerticalAlignment="Top"
+                                        VerticalAlignment="Center"
                                         Padding="0"
                                         Margin="10,0,0,0">
                                     <Image Source="/Resources/delete.png"

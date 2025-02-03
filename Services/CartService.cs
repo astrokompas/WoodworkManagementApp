@@ -32,14 +32,37 @@ namespace WoodworkManagementApp.Services
 
         public void AddItem(CartItem item)
         {
-            var newItem = new CartItem
+            _dispatcher.Invoke(() =>
             {
-                ProductName = item.ProductName,
-                Volume = item.Volume,
-                PricePerM3 = item.PricePerM3,
-                Type = item.Type
-            };
-            _dispatcher.Invoke(() => _cartItems.Add(newItem));
+                var newItem = new CartItem
+                {
+                    ProductName = item.ProductName,
+                    Volume = item.Volume,
+                    PricePerM3 = item.PricePerM3,
+                    Type = item.Type
+                };
+                _cartItems.Add(newItem);
+            });
+            SaveCartAsync().ConfigureAwait(false);
+        }
+
+        public void AddItems(IEnumerable<CartItem> items)
+        {
+            _dispatcher.Invoke(() =>
+            {
+                foreach (var item in items)
+                {
+                    var newItem = new CartItem
+                    {
+                        ProductName = item.ProductName,
+                        Volume = item.Volume,
+                        PricePerM3 = item.PricePerM3,
+                        Type = item.Type,
+                        Quantity = item.Quantity
+                    };
+                    _cartItems.Add(newItem);
+                }
+            });
             SaveCartAsync().ConfigureAwait(false);
         }
 
