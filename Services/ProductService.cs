@@ -52,6 +52,11 @@ namespace WoodworkManagementApp.Services
             }
         }
 
+        public Product GetProductByName(string name)
+        {
+            return Products.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
         public async Task SaveProductsAsync(IEnumerable<Product> products)
         {
             try

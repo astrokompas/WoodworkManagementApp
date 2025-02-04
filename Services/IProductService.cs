@@ -15,5 +15,6 @@ namespace WoodworkManagementApp.Services
         Task SaveProductsAsync(IEnumerable<Product> products);
         Task ImportFromExcelAsync(string filePath);
         Task ExportToExcelAsync(string filePath, IEnumerable<Product> products);
+        Product GetProductByName(string name);
     }
 }

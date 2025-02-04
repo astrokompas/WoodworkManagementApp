@@ -12,6 +12,8 @@ using WoodworkManagementApp.Services;
 using System.Windows;
 using WoodworkManagementApp.Dialogs;
 using System.Windows.Threading;
+using System.IO;
+
 
 namespace WoodworkManagementApp.ViewModels
 {
@@ -123,7 +125,8 @@ namespace WoodworkManagementApp.ViewModels
             {
                 try
                 {
-                    await _ordersService.SaveOrderAsync(dialog.Order);
+                    var orderToSave = dialog.Order;
+                    await _ordersService.SaveOrderAsync(orderToSave);
                 }
                 catch (Exception ex)
                 {
@@ -149,7 +152,8 @@ namespace WoodworkManagementApp.ViewModels
                 var dialog = new EditOrderDialog(order, _productsViewModel);
                 if (dialog.ShowDialog() == true)
                 {
-                    await _ordersService.SaveOrderAsync(dialog.Order);
+                    var orderToSave = dialog.Order;
+                    await _ordersService.SaveOrderAsync(orderToSave);
                 }
 
                 await _ordersService.UnlockOrderAsync(order.OrderNumber);

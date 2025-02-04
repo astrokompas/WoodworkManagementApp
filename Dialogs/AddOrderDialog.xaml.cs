@@ -11,17 +11,22 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using WoodworkManagementApp.ViewModels;
+using WoodworkManagementApp.Models;
 
 namespace WoodworkManagementApp.Dialogs
 {
-    /// <summary>
-    /// Interaction logic for AddOrderDialog.xaml
-    /// </summary>
     public partial class AddOrderDialog : Window
     {
-        public AddOrderDialog()
+        private readonly AddOrderViewModel _viewModel;
+
+        public Order Order => _viewModel.Order;
+
+        public AddOrderDialog(IProductsViewModel productsViewModel)
         {
             InitializeComponent();
+            _viewModel = new AddOrderViewModel(productsViewModel);
+            DataContext = _viewModel;
         }
     }
 }
