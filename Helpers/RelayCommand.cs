@@ -20,12 +20,18 @@ namespace WoodworkManagementApp.Helpers
 
         public event EventHandler CanExecuteChanged
         {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
         }
 
         public bool CanExecute(object parameter) => _canExecute?.Invoke() ?? true;
+
         public void Execute(object parameter) => _execute();
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     public class RelayCommand<T> : ICommand
@@ -45,7 +51,22 @@ namespace WoodworkManagementApp.Helpers
             remove => CommandManager.RequerySuggested -= value;
         }
 
-        public bool CanExecute(object parameter) => _canExecute?.Invoke((T)parameter) ?? true;
-        public void Execute(object parameter) => _execute((T)parameter);
+        public bool CanExecute(object parameter)
+        {
+            if (parameter == null && typeof(T).IsValueType)
+                return false;
+
+            return _canExecute?.Invoke(parameter == null ? default : (T)parameter) ?? true;
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute(parameter == null ? default : (T)parameter);
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 }

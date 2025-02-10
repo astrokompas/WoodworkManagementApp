@@ -1,0 +1,69 @@
+﻿<Window x:Class="WoodworkManagementApp.Dialogs.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ustawienia"
+        Height="300"
+        Width="500"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource DialogWindow}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Ścieżka do zamówień"
+                      Style="{StaticResource InputLabel}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding OrdersPath}"
+                         Style="{StaticResource InputBox}"/>
+                <Button Grid.Column="1"
+                        Content="..."
+                        Command="{Binding BrowseOrdersPathCommand}"
+                        Style="{StaticResource ActionButton}"
+                        Width="40"
+                        Margin="5,0,0,0"/>
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2">
+            <TextBlock Text="Ścieżka do szablonów"
+                      Style="{StaticResource InputLabel}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding TemplatesPath}"
+                         Style="{StaticResource InputBox}"/>
+                <Button Grid.Column="1"
+                        Content="..."
+                        Command="{Binding BrowseTemplatesPathCommand}"
+                        Style="{StaticResource ActionButton}"
+                        Width="40"
+                        Margin="5,0,0,0"/>
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Row="4"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Content="Zapisz"
+                    Command="{Binding SaveCommand}"
+                    Style="{StaticResource DialogButton}"/>
+            <Button Content="Anuluj"
+                    Command="{Binding CancelCommand}"
+                    Style="{StaticResource DialogButton}"
+                    Margin="10,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</Window>

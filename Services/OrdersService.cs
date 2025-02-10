@@ -7,35 +7,53 @@ using System.Text;
 using System.Threading.Tasks;
 using static WoodworkManagementApp.ViewModels.OrdersViewModel;
 using WoodworkManagementApp.Models;
+using WoodworkManagementApp.Helpers;
+using System.Diagnostics;
+using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
+
 
 namespace WoodworkManagementApp.Services
 {
-    public class OrdersService : IOrdersService
+    public class OrdersService : IOrdersService, IDisposable
     {
+        private bool _disposed;
+        private readonly object _watcherLock = new();
+        private readonly FileSystemWatcher _watcher;
+        private readonly ISettingsService _settingsService;
         private readonly string _ordersPath;
         private readonly string _locksPath;
         private readonly IJsonStorageService _jsonStorage;
         private readonly IDocumentService _documentService;
-        private readonly FileSystemWatcher _watcher;
         private const int LOCK_TIMEOUT_MINUTES = 5;
         private readonly string _currentUser;
+        private readonly ConcurrentDictionary<string, DateTime> _processedEvents = new();
+        private readonly ILogger<OrdersService> _logger;
 
         public event EventHandler<OrderChangedEventArgs> OrderChanged;
 
         public OrdersService(
             IJsonStorageService jsonStorage,
-            IDocumentService documentService)
+            IDocumentService documentService,
+            ISettingsService settingsService,
+            ILogger<OrdersService> logger)
         {
             _jsonStorage = jsonStorage;
             _documentService = documentService;
+            _settingsService = settingsService;
+            _logger = logger;
 
-            _ordersPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                "WoodworkManagementApp",
-                "Orders"
-            );
-
+            var settings = _settingsService.LoadSettingsAsync().GetAwaiter().GetResult();
+            _ordersPath = settings.OrdersPath;
             _locksPath = Path.Combine(_ordersPath, "locks");
+
+            if (!_settingsService.IsOrdersFolderAvailable())
+            {
+                throw new InvalidOperationException("Orders folder is not available or is locked by another instance.");
+            }
+
+            _settingsService.EnsureDirectoriesExist();
+
             _currentUser = Environment.UserName;
 
             Directory.CreateDirectory(_ordersPath);
@@ -47,16 +65,64 @@ namespace WoodworkManagementApp.Services
 
         private void InitializeWatcher()
         {
-            _watcher = new FileSystemWatcher(_ordersPath)
+            lock (_watcherLock)
             {
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
-                Filter = "*.docx"
-            };
+                if (_disposed) return;
 
-            _watcher.Created += OnOrderFileChanged;
-            _watcher.Changed += OnOrderFileChanged;
-            _watcher.Deleted += OnOrderFileChanged;
-            _watcher.EnableRaisingEvents = true;
+                _watcher = new FileSystemWatcher(_ordersPath)
+                {
+                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+                    Filter = "*.docx",
+                    EnableRaisingEvents = false
+                };
+
+                _watcher.Created += OnOrderFileChanged;
+                _watcher.Changed += OnOrderFileChanged;
+                _watcher.Deleted += OnOrderFileChanged;
+                _watcher.Error += OnWatcherError;
+
+                _watcher.EnableRaisingEvents = true;
+            }
+        }
+
+
+        private void OnWatcherError(object sender, ErrorEventArgs e)
+        {
+            _logger.LogError(e.GetException(), "FileSystemWatcher error occurred");
+
+            try
+            {
+                lock (_watcherLock)
+                {
+                    if (_disposed) return;
+
+                    _watcher.EnableRaisingEvents = false;
+                    _watcher.Dispose();
+                    InitializeWatcher();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reinitialize FileSystemWatcher");
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _watcher?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private void StartLockCleanupTimer()
@@ -179,29 +245,72 @@ namespace WoodworkManagementApp.Services
             return $"{orderNumber}.lock.json";
         }
 
-        public async Task<ObservableCollection<Order>> LoadOrdersAsync()
+        public async Task<ObservableCollection<Order>> LoadOrdersAsync(CancellationToken cancellationToken = default)
         {
-            var orders = new ObservableCollection<Order>();
-            var files = Directory.GetFiles(_ordersPath, "*.docx");
-
-            foreach (var file in files)
+            try
             {
-                try
-                {
-                    var orderNumber = Path.GetFileNameWithoutExtension(file);
-                    var order = await _documentService.ReadOrderDocumentAsync(orderNumber);
-                    orders.Add(order);
-                }
-                catch
-                {
-                    // Skip corrupted files
-                }
-            }
+                var orders = new ObservableCollection<Order>();
+                var files = Directory.GetFiles(_ordersPath, "*.docx");
 
-            return orders;
+                foreach (var file in files)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    try
+                    {
+                        if (await FileValidator.ValidateWordDocumentAsync(file))
+                        {
+                            var orderNumber = Path.GetFileNameWithoutExtension(file);
+                            var order = await _documentService.ReadOrderDocumentAsync(orderNumber);
+                            orders.Add(order);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error loading order {OrderPath}", file);
+                    }
+                }
+                return orders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load orders");
+                throw new ApplicationException("Failed to load orders", ex);
+            }
         }
 
-        public async Task SaveOrderAsync(Order order)
+        private void OnOrderFileChanged(object sender, FileSystemEventArgs e)
+        {
+            try
+            {
+                if (!FileValidator.IsValidWordDocument(e.FullPath))
+                    return;
+
+                var orderNumber = Path.GetFileNameWithoutExtension(e.Name);
+
+                switch (e.ChangeType)
+                {
+                    case WatcherChangeTypes.Created:
+                    case WatcherChangeTypes.Changed:
+                        Task.Run(async () =>
+                        {
+                            var order = await _documentService.ReadOrderDocumentAsync(orderNumber);
+                            RaiseOrderChanged(order, e.ChangeType == WatcherChangeTypes.Created ?
+                                OrderChangeType.Added : OrderChangeType.Modified);
+                        });
+                        break;
+
+                    case WatcherChangeTypes.Deleted:
+                        RaiseOrderChanged(null, orderNumber, OrderChangeType.Deleted);
+                        break;
+                }
+            }
+            catch
+            {
+                // Log error but continue watching
+            }
+        }
+
+        public async Task SaveOrderAsync(Order order, CancellationToken cancellationToken = default)
         {
             var lockExists = await LockOrderAsync(order.OrderNumber);
             if (!lockExists)
@@ -221,7 +330,7 @@ namespace WoodworkManagementApp.Services
             }
         }
 
-        public async Task DeleteOrderAsync(string orderNumber)
+        public async Task DeleteOrderAsync(string orderNumber, CancellationToken cancellationToken = default)
         {
             var lockExists = await LockOrderAsync(orderNumber);
             if (!lockExists)
@@ -250,35 +359,6 @@ namespace WoodworkManagementApp.Services
             var previewBytes = await _documentService.GeneratePreviewAsync(orderNumber);
             var thumbnailPath = Path.Combine(_ordersPath, $"{orderNumber}.thumb.png");
             await File.WriteAllBytesAsync(thumbnailPath, previewBytes);
-        }
-
-        private void OnOrderFileChanged(object sender, FileSystemEventArgs e)
-        {
-            try
-            {
-                var orderNumber = Path.GetFileNameWithoutExtension(e.Name);
-
-                switch (e.ChangeType)
-                {
-                    case WatcherChangeTypes.Created:
-                    case WatcherChangeTypes.Changed:
-                        Task.Run(async () =>
-                        {
-                            var order = await _documentService.ReadOrderDocumentAsync(orderNumber);
-                            RaiseOrderChanged(order, e.ChangeType == WatcherChangeTypes.Created ?
-                                OrderChangeType.Added : OrderChangeType.Modified);
-                        });
-                        break;
-
-                    case WatcherChangeTypes.Deleted:
-                        RaiseOrderChanged(null, orderNumber, OrderChangeType.Deleted);
-                        break;
-                }
-            }
-            catch
-            {
-                // Log error but continue watching
-            }
         }
 
         private void RaiseOrderChanged(Order order, OrderChangeType changeType)

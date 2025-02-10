@@ -183,7 +183,66 @@
                                                Width="16"
                                                Height="16"/>
                                     </Button>
+
+                                    <Button Grid.Column="3"
+                                            Command="{Binding OpenSettingsCommand}"
+                                            Style="{StaticResource ActionButton}"
+                                            Width="35" Height="35"
+                                            Padding="0"
+                                            HorizontalAlignment="Right"
+                                            ToolTip="Ustawienia">
+                                        <Image Source="/Resources/settings.png"
+                                                       Width="16"
+                                                       Height="16"/>
+                                    </Button>
                                 </StackPanel>
+                                <!-- Pagination -->
+                                <StackPanel Grid.Row="3" 
+                                            Orientation="Horizontal" 
+                                            HorizontalAlignment="Center"
+                                            Margin="0,20,0,0"
+                                            Visibility="{Binding SearchText, Converter={StaticResource EmptyStringToVisibilityConverter}}">
+                                    <Button Command="{Binding PreviousPageCommand}"
+                                            Style="{StaticResource ActionButton}"
+                                            Width="35" Height="35"
+                                            Padding="0"
+                                            Margin="0,0,10,0">
+                                        <Path Data="M 12,24 L 4,16 L 12,8" 
+                                              Stroke="White" 
+                                              StrokeThickness="2"/>
+                                    </Button>
+
+                                    <TextBlock Text="{Binding CurrentPage}"
+                                               VerticalAlignment="Center"
+                                               Foreground="White"
+                                               FontSize="16"
+                                               Margin="10,0"/>
+
+                                    <Button Command="{Binding NextPageCommand}"
+                                            Style="{StaticResource ActionButton}"
+                                            Width="35" Height="35"
+                                            Padding="0"
+                                            Margin="10,0,0,0">
+                                        <Path Data="M 4,24 L 12,16 L 4,8" 
+                                              Stroke="White" 
+                                              StrokeThickness="2"/>
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Loading Spinner -->
+                                <local:LoadingSpinner Grid.Row="0" Grid.RowSpan="4" 
+                     IsLoading="{Binding IsLoading, Mode=OneWay}"
+                     LoadingText="{Binding LoadingText, Mode=OneWay}">
+                                    <local:LoadingSpinner.Style>
+                                        <Style TargetType="local:LoadingSpinner">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLoading}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </local:LoadingSpinner.Style>
+                                </local:LoadingSpinner>
                             </Grid>
                         </Border>
                     </DataTemplate>

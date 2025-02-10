@@ -596,5 +596,13 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Dialog Window -->
+    <Style x:Key="DialogWindow" TargetType="Window">
+        <Setter Property="WindowStyle" Value="None"/>
+        <Setter Property="ResizeMode" Value="NoResize"/>
+        <Setter Property="AllowsTransparency" Value="True"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
 
 </ResourceDictionary>

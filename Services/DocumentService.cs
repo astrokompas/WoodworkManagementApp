@@ -12,16 +12,24 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows.Xps.Packaging;
 using System.Windows;
+using WoodworkManagementApp.Helpers;
+using Microsoft.Extensions.Logging;
+
 
 public class DocumentService : IDocumentService
 {
+    private bool _disposed;
     private readonly string _documentsPath;
     private readonly string _templatesPath;
     private readonly IProductService _productsService;
+    private readonly ILogger<DocumentService> _logger;
 
-    public DocumentService(IProductService productsService)
+    public DocumentService(
+        IProductService productsService,
+        ILogger<DocumentService> logger)
     {
         _productsService = productsService;
+        _logger = logger;
 
         _documentsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
@@ -38,38 +46,106 @@ public class DocumentService : IDocumentService
         Directory.CreateDirectory(_templatesPath);
     }
 
+    private void UpdateDocument(WordprocessingDocument doc, Order order)
+    {
+        var body = doc.MainDocumentPart.Document.Body;
+
+        ReplaceContentControlText(body, "OrderNumber", order.OrderNumber);
+        ReplaceContentControlText(body, "CreationDate", order.CreationDate.ToShortDateString());
+        ReplaceContentControlText(body, "CreatorName", order.CreatorName);
+        ReplaceContentControlText(body, "ReceiverName", order.ReceiverName);
+        ReplaceContentControlText(body, "CompletionDate", order.CompletionDate);
+        ReplaceContentControlText(body, "Comments", order.Comments);
+
+        var table = CreateProductsTable(order.Products);
+        body.AppendChild(table);
+
+        doc.MainDocumentPart.Document.Save();
+    }
+
     public async Task CreateOrderDocumentAsync(Order order)
     {
+        if (order == null) throw new ArgumentNullException(nameof(order));
+
         var templatePath = Path.Combine(_templatesPath, "OrderTemplate.docx");
         var orderPath = Path.Combine(_documentsPath, $"{order.OrderNumber}.docx");
+        var tempPath = Path.Combine(_documentsPath, $"temp_{Guid.NewGuid()}.docx");
 
-        File.Copy(templatePath, orderPath, true);
-
-        await Task.Run(() =>
+        try
         {
-            using (WordprocessingDocument doc = WordprocessingDocument.Open(orderPath, true))
+            FileValidator.ValidateWordDocument(templatePath);
+            File.Copy(templatePath, tempPath, true);
+
+            await Task.Run(() =>
             {
-                var mainPart = doc.MainDocumentPart;
-                var body = mainPart.Document.Body;
+                using var doc = WordprocessingDocument.Open(tempPath, true);
+                UpdateDocument(doc, order);
+            });
 
-                ReplaceContentControlText(body, "OrderNumber", order.OrderNumber);
-                ReplaceContentControlText(body, "CreationDate", order.CreationDate.ToShortDateString());
-                ReplaceContentControlText(body, "CreatorName", order.CreatorName);
-                ReplaceContentControlText(body, "ReceiverName", order.ReceiverName);
-                ReplaceContentControlText(body, "CompletionDate", order.CompletionDate);
-                ReplaceContentControlText(body, "Comments", order.Comments);
-
-                var table = CreateProductsTable(order.Products);
-                body.AppendChild(table);
-
-                mainPart.Document.Save();
+            // Atomic file operation
+            if (File.Exists(orderPath))
+            {
+                var backup = orderPath + ".bak";
+                File.Move(orderPath, backup, true);
+                try
+                {
+                    File.Move(tempPath, orderPath, true);
+                    File.Delete(backup);
+                }
+                catch
+                {
+                    if (File.Exists(backup))
+                    {
+                        File.Move(backup, orderPath, true);
+                    }
+                    throw;
+                }
             }
-        });
+            else
+            {
+                File.Move(tempPath, orderPath, true);
+            }
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                try
+                {
+                    File.Delete(tempPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to delete temporary file: {Path}", tempPath);
+                }
+            }
+        }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                // Cleanup code
+            }
+            _disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
     public async Task<Order> ReadOrderDocumentAsync(string orderNumber)
     {
         var orderPath = Path.Combine(_documentsPath, $"{orderNumber}.docx");
+
+        FileValidator.ValidateWordDocument(orderPath);
+
         var order = new Order();
 
         await Task.Run(() =>
@@ -106,20 +182,27 @@ public class DocumentService : IDocumentService
     {
         var orderPath = Path.Combine(_documentsPath, $"{orderNumber}.docx");
 
+        FileValidator.ValidateWordDocument(orderPath);
+
         return await Task.Run(() =>
         {
-            using (var doc = new Aspose.Words.Document(orderPath))
+            var doc = new Aspose.Words.Document(orderPath);
+            try
             {
-                using (var stream = new MemoryStream())
+                using var stream = new MemoryStream();
+                var options = new Aspose.Words.Saving.ImageSaveOptions(Aspose.Words.SaveFormat.Png)
                 {
-                    var options = new Aspose.Words.Saving.ImageSaveOptions(Aspose.Words.SaveFormat.Png)
-                    {
-                        PageIndex = 0,
-                        Resolution = 96
-                    };
+                    Resolution = 96
+                };
 
-                    doc.Save(stream, options);
-                    return stream.ToArray();
+                doc.Save(stream, options);
+                return stream.ToArray();
+            }
+            finally
+            {
+                if (doc is IDisposable disposable)
+                {
+                    disposable.Dispose();
                 }
             }
         });

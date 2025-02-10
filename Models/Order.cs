@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -17,6 +18,17 @@ namespace WoodworkManagementApp.Models
         private bool _isLocked;
         private string _lockedBy;
         private string _thumbnailPath;
+        private readonly Dictionary<string, string> _errors = new();
+
+        public ObservableCollection<OrderProduct> Products
+        {
+            get => _products;
+            set
+            {
+                _products = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string OrderNumber
         {
@@ -34,6 +46,7 @@ namespace WoodworkManagementApp.Models
             set
             {
                 _creationDate = value;
+                ValidateCompletionDate();
                 OnPropertyChanged();
             }
         }
@@ -48,15 +61,38 @@ namespace WoodworkManagementApp.Models
             }
         }
 
-        public ObservableCollection<OrderProduct> Products
+        private void Products_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            get => _products;
-            set
+            // Handle old items
+            if (e.OldItems != null)
             {
-                _products = value;
-                OnPropertyChanged();
+                foreach (OrderProduct item in e.OldItems)
+                {
+                    item.PropertyChanged -= Product_PropertyChanged;
+                }
+            }
+
+            // Handle new items
+            if (e.NewItems != null)
+            {
+                foreach (OrderProduct item in e.NewItems)
+                {
+                    item.PropertyChanged += Product_PropertyChanged;
+                }
+            }
+
+            OnPropertyChanged(nameof(TotalAmount));
+        }
+
+        private void Product_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(OrderProduct.TotalPrice))
+            {
+                OnPropertyChanged(nameof(TotalAmount));
             }
         }
+
+        public decimal TotalAmount => Products?.Sum(p => p.TotalPrice) ?? 0;
 
         public string ReceiverName
         {
@@ -74,6 +110,7 @@ namespace WoodworkManagementApp.Models
             set
             {
                 _completionDate = value;
+                ValidateCompletionDate();
                 OnPropertyChanged();
             }
         }
@@ -123,6 +160,7 @@ namespace WoodworkManagementApp.Models
             Products = new ObservableCollection<OrderProduct>();
             CreationDate = DateTime.Now;
             IsLocked = false;
+            _products = new ObservableCollection<OrderProduct>();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -138,21 +176,49 @@ namespace WoodworkManagementApp.Models
             {
                 OrderNumber = OrderNumber,
                 CreationDate = CreationDate,
-                CreatorName = CreatorName,
-                ReceiverName = ReceiverName,
-                CompletionDate = CompletionDate,
-                Comments = Comments,
+                CreatorName = CreatorName?.Clone() as string,
+                ReceiverName = ReceiverName?.Clone() as string,
+                CompletionDate = CompletionDate?.Clone() as string,
+                Comments = Comments?.Clone() as string,
                 IsLocked = IsLocked,
-                LockedBy = LockedBy,
-                ThumbnailPath = ThumbnailPath
+                LockedBy = LockedBy?.Clone() as string,
+                ThumbnailPath = ThumbnailPath?.Clone() as string
             };
 
-            foreach (var product in Products)
+            if (Products != null)
             {
-                clone.Products.Add(product.Clone());
+                clone.Products = new ObservableCollection<OrderProduct>(
+                    Products.Select(p => p?.Clone())
+                           .Where(p => p != null));
             }
 
             return clone;
+        }
+
+        private void ValidateCompletionDate()
+        {
+            if (string.IsNullOrWhiteSpace(_completionDate))
+            {
+                _errors[nameof(CompletionDate)] = "Completion date is required";
+                return;
+            }
+
+            if (DateTime.TryParse(_completionDate, out DateTime completionDate))
+            {
+                if (completionDate.Date < CreationDate.Date)
+                {
+                    _errors[nameof(CompletionDate)] =
+                        "Completion date cannot be earlier than creation date";
+                }
+                else
+                {
+                    _errors.Remove(nameof(CompletionDate));
+                }
+            }
+            else
+            {
+                _errors[nameof(CompletionDate)] = "Invalid date format";
+            }
         }
     }
 }

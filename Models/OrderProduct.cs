@@ -15,6 +15,13 @@ namespace WoodworkManagementApp.Models
         private int _pieces;
         private decimal _discount;
         private decimal _totalPrice;
+        private readonly Dictionary<string, string> _errors = new();
+
+        private void ValidateVolume(decimal value)
+        {
+            if (value < 0)
+                throw new ArgumentException("Volume cannot be negative");
+        }
 
         public Product Product
         {
@@ -32,6 +39,7 @@ namespace WoodworkManagementApp.Models
             get => _volume;
             set
             {
+                ValidateVolume(value);
                 _volume = value;
                 CalculateTotalPrice();
                 OnPropertyChanged();
@@ -71,18 +79,16 @@ namespace WoodworkManagementApp.Models
 
         private void CalculateTotalPrice()
         {
-            if (Product == null) return;
+            if (Product == null)
+            {
+                TotalPrice = 0;
+                return;
+            }
 
             decimal basePrice = Volume * Product.PricePerM3;
-            if (Volume >= Product.Discount && Discount > 0)
-            {
-                decimal discountMultiplier = 1 - (Discount / 100);
-                TotalPrice = basePrice * discountMultiplier;
-            }
-            else
-            {
-                TotalPrice = basePrice;
-            }
+            TotalPrice = Volume >= Product.Discount && Discount > 0
+                ? basePrice * (1 - (Discount / 100))
+                : basePrice;
         }
 
         public OrderProduct Clone()
@@ -94,6 +100,17 @@ namespace WoodworkManagementApp.Models
                 Pieces = Pieces,
                 Discount = Discount
             };
+        }
+
+        public string Error => string.Join(Environment.NewLine, _errors.Values);
+
+        public string this[string propertyName]
+        {
+            get
+            {
+                _errors.TryGetValue(propertyName, out var error);
+                return error ?? string.Empty;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -11,9 +11,9 @@ namespace WoodworkManagementApp.Services
 {
     public interface IOrdersService
     {
-        Task<ObservableCollection<Order>> LoadOrdersAsync();
-        Task SaveOrderAsync(Order order);
-        Task DeleteOrderAsync(string orderNumber);
+        Task<ObservableCollection<Order>> LoadOrdersAsync(CancellationToken cancellationToken = default);
+        Task SaveOrderAsync(Order order, CancellationToken cancellationToken = default);
+        Task DeleteOrderAsync(string orderNumber, CancellationToken cancellationToken = default);
         Task<bool> LockOrderAsync(string orderNumber);
         Task UnlockOrderAsync(string orderNumber);
         string GetOrderFilePath(string orderNumber);

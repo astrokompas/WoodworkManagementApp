@@ -13,6 +13,7 @@ using System.Windows;
 using WoodworkManagementApp.Dialogs;
 using System.Windows.Threading;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 
 namespace WoodworkManagementApp.ViewModels
@@ -22,31 +23,48 @@ namespace WoodworkManagementApp.ViewModels
         private readonly IOrdersService _ordersService;
         private readonly IProductsViewModel _productsViewModel;
         private readonly Dispatcher _dispatcher;
+        private readonly IDialogService _dialogService;
+        private readonly ILogger<OrdersViewModel> _logger;
         private ObservableCollection<Order> _orders;
         private string _searchText;
         private ICollectionView _filteredOrders;
+        private const int PAGE_SIZE = 9;
+        private int _currentPage = 1;
+        private int _totalPages;
+        private bool _isLoading;
+        private string _loadingText;
 
         public ICommand AddOrderCommand { get; }
         public ICommand EditOrderCommand { get; }
         public ICommand DeleteOrderCommand { get; }
         public ICommand DownloadOrderCommand { get; }
         public ICommand ClearSearchCommand { get; }
+        public ICommand NextPageCommand { get; }
+        public ICommand PreviousPageCommand { get; }
+        public ICommand OpenSettingsCommand { get; }
 
-        public OrdersViewModel(IOrdersService ordersService, IProductsViewModel productsViewModel)
+        public OrdersViewModel(
+            IOrdersService ordersService,
+            IProductsViewModel productsViewModel,
+            IDialogService dialogService,
+            ILogger<OrdersViewModel> logger)
         {
             _ordersService = ordersService;
             _productsViewModel = productsViewModel;
+            _dialogService = dialogService;
+            _logger = logger;
             _dispatcher = Application.Current.Dispatcher;
             _orders = new ObservableCollection<Order>();
 
-            // Initialize commands
             AddOrderCommand = new RelayCommand(ExecuteAddOrder);
             EditOrderCommand = new RelayCommand<Order>(ExecuteEditOrder);
             DeleteOrderCommand = new RelayCommand<Order>(ExecuteDeleteOrder);
             DownloadOrderCommand = new RelayCommand<Order>(ExecuteDownloadOrder);
             ClearSearchCommand = new RelayCommand(ExecuteClearSearch);
+            NextPageCommand = new RelayCommand(ExecuteNextPage, CanExecuteNextPage);
+            PreviousPageCommand = new RelayCommand(ExecutePreviousPage, CanExecutePreviousPage);
+            OpenSettingsCommand = new RelayCommand(ExecuteOpenSettings);
 
-            // Subscribe to order changes
             _ordersService.OrderChanged += OnOrderChanged;
         }
 
@@ -76,7 +94,53 @@ namespace WoodworkManagementApp.ViewModels
             set
             {
                 _searchText = value;
-                FilteredOrders?.Refresh();
+                _filteredOrders?.Refresh();
+                OnPropertyChanged();
+            }
+        }
+
+        public int CurrentPage
+        {
+            get => _currentPage;
+            set
+            {
+                if (value < 1 || (TotalPages > 0 && value > TotalPages)) return;
+                if (_currentPage != value)
+                {
+                    _currentPage = value;
+                    OnPropertyChanged();
+                    UpdateDisplayedOrders();
+                    UpdatePaginationCommands();
+                }
+            }
+        }
+
+        public int TotalPages
+        {
+            get => _totalPages;
+            private set
+            {
+                _totalPages = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string LoadingText
+        {
+            get => _loadingText;
+            set
+            {
+                _loadingText = value;
                 OnPropertyChanged();
             }
         }
@@ -108,19 +172,41 @@ namespace WoodworkManagementApp.ViewModels
             if (string.IsNullOrWhiteSpace(SearchText))
                 return true;
 
-            if (item is Order order)
-            {
-                return order.OrderNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                       order.ReceiverName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                       order.CreatorName.Contains(SearchText, StringComparison.OrdinalIgnoreCase);
-            }
+            if (item is not Order order)
+                return false;
 
-            return false;
+            var searchTerms = SearchText.ToLower().Split(' ',
+                StringSplitOptions.RemoveEmptyEntries);
+
+            return searchTerms.All(term =>
+                (order.OrderNumber?.ToLower().Contains(term) ?? false) ||
+                (order.ReceiverName?.ToLower().Contains(term) ?? false) ||
+                (order.CreatorName?.ToLower().Contains(term) ?? false) ||
+                (order.Comments?.ToLower().Contains(term) ?? false));
+        }
+
+        private async Task<bool> ValidateOrder(Order order)
+        {
+            try
+            {
+                var orderPath = _ordersService.GetOrderFilePath(order.OrderNumber);
+                FileValidator.ValidateWordDocument(orderPath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Błąd walidacji dokumentu: {ex.Message}",
+                    "Błąd",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                return false;
+            }
         }
 
         private async void ExecuteAddOrder()
         {
-            var dialog = new AddOrderDialog(_productsViewModel);
+            var dialog = new AddOrderDialog(_productsViewModel, _dialogService);
             if (dialog.ShowDialog() == true)
             {
                 try
@@ -130,15 +216,16 @@ namespace WoodworkManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error saving order: {ex.Message}", "Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    _logger.LogError(ex, "Error saving order");
+                    _dialogService.ShowError("Save Error", $"Error saving order: {ex.Message}");
                 }
             }
         }
 
         private async void ExecuteEditOrder(Order order)
         {
-            if (order == null) return;
+            if (order == null || !await ValidateOrder(order))
+                return;
 
             try
             {
@@ -186,9 +273,10 @@ namespace WoodworkManagementApp.ViewModels
             }
         }
 
-        private void ExecuteDownloadOrder(Order order)
+        private async void ExecuteDownloadOrder(Order order)
         {
-            if (order == null) return;
+            if (order == null || !await ValidateOrder(order))
+                return;
 
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
@@ -202,18 +290,92 @@ namespace WoodworkManagementApp.ViewModels
                 try
                 {
                     File.Copy(
-                        Path.Combine(_ordersService.GetOrderFilePath(order.OrderNumber)),
+                        _ordersService.GetOrderFilePath(order.OrderNumber),
                         dialog.FileName,
                         true
                     );
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error downloading order: {ex.Message}", "Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    _logger.LogError(ex, "Error downloading order {OrderNumber}", order.OrderNumber);
+                    _dialogService.ShowError("Download Error", $"Error downloading order: {ex.Message}");
                 }
             }
         }
+
+        private void UpdateDisplayedOrders()
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                var totalItems = Orders.Count;
+                TotalPages = (int)Math.Ceiling(totalItems / (double)PAGE_SIZE);
+
+                var skip = (CurrentPage - 1) * PAGE_SIZE;
+                var pagedOrders = Orders.Skip(skip).Take(PAGE_SIZE).ToList();
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    FilteredOrders = CollectionViewSource.GetDefaultView(pagedOrders);
+                });
+            }
+            else
+            {
+                var filteredList = Orders.Where(o => FilterOrders(o)).ToList();
+                TotalPages = (int)Math.Ceiling(filteredList.Count / (double)PAGE_SIZE);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    FilteredOrders = CollectionViewSource.GetDefaultView(filteredList);
+                });
+            }
+        }
+
+        private void UpdatePaginationCommands()
+        {
+            (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        }
+
+        private void ExecutePrintOrder(Order order)
+        {
+            if (order == null) return;
+
+            try
+            {
+                var orderPath = _ordersService.GetOrderFilePath(order.OrderNumber);
+                var dialogLogger = _logger.CreateLogger<PrintPreviewDialog>();
+                var printPreviewDialog = new PrintPreviewDialog(orderPath, dialogLogger);
+                printPreviewDialog.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error preparing print preview for order {OrderNumber}", order.OrderNumber);
+                _dialogService.ShowError("Print Error", $"Error preparing print preview: {ex.Message}");
+            }
+        }
+
+        public static class LoggerExtensions
+        {
+            public static ILogger<T> CreateLogger<T>(this ILogger logger)
+            {
+                var loggerFactory = new LoggerFactory();
+                return loggerFactory.CreateLogger<T>();
+            }
+        }
+
+        private void ExecuteOpenSettings()
+        {
+            var dialog = new SettingsDialog();
+            if (dialog.ShowDialog() == true)
+            {
+                InitializeAsync().ConfigureAwait(false);
+            }
+        }
+
+        private void ExecuteNextPage() => CurrentPage++;
+        private bool CanExecuteNextPage() => CurrentPage < TotalPages;
+        private void ExecutePreviousPage() => CurrentPage--;
+        private bool CanExecutePreviousPage() => CurrentPage > 1;
 
         private void ExecuteClearSearch()
         {
@@ -222,7 +384,7 @@ namespace WoodworkManagementApp.ViewModels
 
         private void OnOrderChanged(object sender, OrderChangedEventArgs e)
         {
-            _dispatcher.Invoke(() =>
+            _dispatcher.InvokeAsync(() =>
             {
                 var existingOrder = Orders.FirstOrDefault(o => o.OrderNumber == e.OrderNumber);
 
@@ -275,6 +437,11 @@ namespace WoodworkManagementApp.ViewModels
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Dispose()
+        {
+            _ordersService.OrderChanged -= OnOrderChanged;
         }
     }
 }
