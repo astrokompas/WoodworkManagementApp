@@ -11,6 +11,7 @@ namespace WoodworkManagementApp.Services
     {
         Task<AppSettings> LoadSettingsAsync();
         Task SaveSettingsAsync(AppSettings settings);
+        Task ValidateSettingsAsync(AppSettings settings);
         bool IsOrdersFolderAvailable();
         void EnsureDirectoriesExist();
     }

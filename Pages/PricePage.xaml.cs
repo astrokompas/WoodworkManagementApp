@@ -7,20 +7,30 @@ namespace WoodworkManagementApp.Pages
 {
     public partial class PricePage : Page
     {
-        public PricePage()
+        private readonly IProductsViewModel _productsViewModel;
+        private readonly IProductService _productService;
+        private readonly IPriceService _priceService;
+
+        public PricePage(
+            IProductsViewModel productsViewModel,
+            IProductService productService,
+            IPriceService priceService)
         {
+            _productsViewModel = productsViewModel;
+            _productService = productService;
+            _priceService = priceService;
+
             InitializeComponent();
             InitializeAsync();
         }
 
         private async void InitializeAsync()
         {
-            var productsViewModel = App.Services.GetRequiredService<IProductsViewModel>();
-            await productsViewModel.InitializeAsync();
+            await _productsViewModel.InitializeAsync();
             DataContext = new PricePageViewModel(
-                App.Services.GetRequiredService<IProductService>(),
-                App.Services.GetRequiredService<IPriceService>(),
-                productsViewModel
+                _productService,
+                _priceService,
+                _productsViewModel
             );
         }
     }

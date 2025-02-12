@@ -22,21 +22,30 @@ namespace WoodworkManagementApp.Pages
 {
     public partial class CalcPage : Page
     {
-        public CalcPage()
+        private readonly IProductsViewModel _productsViewModel;
+        private readonly IProductService _productService;
+        private readonly ICartService _cartService;
+
+        public CalcPage(
+            IProductsViewModel productsViewModel,
+            IProductService productService,
+            ICartService cartService)
         {
+            _productsViewModel = productsViewModel;
+            _productService = productService;
+            _cartService = cartService;
+
             InitializeComponent();
             InitializeAsync();
         }
 
         private async void InitializeAsync()
         {
-            var productsViewModel = App.Services.GetRequiredService<IProductsViewModel>();
-            await productsViewModel.InitializeAsync();
-
+            await _productsViewModel.InitializeAsync();
             DataContext = new CalcPageViewModel(
-                App.Services.GetRequiredService<IProductService>(),
-                App.Services.GetRequiredService<ICartService>(),
-                productsViewModel
+                _productService,
+                _cartService,
+                _productsViewModel
             );
         }
     }

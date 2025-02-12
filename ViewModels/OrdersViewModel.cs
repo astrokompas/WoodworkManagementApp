@@ -20,6 +20,7 @@ namespace WoodworkManagementApp.ViewModels
 {
     public class OrdersViewModel : IOrdersViewModel, INotifyPropertyChanged
     {
+        private readonly IPrintService _printService;
         private readonly IOrdersService _ordersService;
         private readonly IProductsViewModel _productsViewModel;
         private readonly Dispatcher _dispatcher;
@@ -47,11 +48,13 @@ namespace WoodworkManagementApp.ViewModels
             IOrdersService ordersService,
             IProductsViewModel productsViewModel,
             IDialogService dialogService,
+            IPrintService printService,
             ILogger<OrdersViewModel> logger)
         {
             _ordersService = ordersService;
             _productsViewModel = productsViewModel;
             _dialogService = dialogService;
+            _printService = printService;
             _logger = logger;
             _dispatcher = Application.Current.Dispatcher;
             _orders = new ObservableCollection<Order>();
@@ -334,33 +337,6 @@ namespace WoodworkManagementApp.ViewModels
         {
             (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
-        }
-
-        private void ExecutePrintOrder(Order order)
-        {
-            if (order == null) return;
-
-            try
-            {
-                var orderPath = _ordersService.GetOrderFilePath(order.OrderNumber);
-                var dialogLogger = _logger.CreateLogger<PrintPreviewDialog>();
-                var printPreviewDialog = new PrintPreviewDialog(orderPath, dialogLogger);
-                printPreviewDialog.ShowDialog();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error preparing print preview for order {OrderNumber}", order.OrderNumber);
-                _dialogService.ShowError("Print Error", $"Error preparing print preview: {ex.Message}");
-            }
-        }
-
-        public static class LoggerExtensions
-        {
-            public static ILogger<T> CreateLogger<T>(this ILogger logger)
-            {
-                var loggerFactory = new LoggerFactory();
-                return loggerFactory.CreateLogger<T>();
-            }
         }
 
         private void ExecuteOpenSettings()

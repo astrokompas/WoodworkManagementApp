@@ -3,7 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:local="clr-namespace:WoodworkManagementApp.Pages"
+      xmlns:controls="clr-namespace:WoodworkManagementApp.UserControls"
       mc:Ignorable="d"
       Title="Zamówienia">
 
@@ -196,6 +196,7 @@
                                                        Height="16"/>
                                     </Button>
                                 </StackPanel>
+                                
                                 <!-- Pagination -->
                                 <StackPanel Grid.Row="3" 
                                             Orientation="Horizontal" 
@@ -230,24 +231,33 @@
                                 </StackPanel>
 
                                 <!-- Loading Spinner -->
-                                <local:LoadingSpinner Grid.Row="0" Grid.RowSpan="4" 
-                     IsLoading="{Binding IsLoading, Mode=OneWay}"
-                     LoadingText="{Binding LoadingText, Mode=OneWay}">
-                                    <local:LoadingSpinner.Style>
-                                        <Style TargetType="local:LoadingSpinner">
+                                <controls:LoadingSpinner 
+                                Grid.Column="0"
+                                Grid.ColumnSpan="3"
+                                IsLoading="{Binding IsLoading, Mode=OneWay}"
+                                LoadingText="{Binding LoadingText, Mode=OneWay}">
+                                    <controls:LoadingSpinner.Style>
+                                        <Style TargetType="controls:LoadingSpinner">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsLoading}" Value="False">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </local:LoadingSpinner.Style>
-                                </local:LoadingSpinner>
+                                    </controls:LoadingSpinner.Style>
+                                </controls:LoadingSpinner>
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+        <!-- Global Loading Spinner -->
+        <controls:LoadingSpinner 
+        Grid.Row="0"
+        Grid.RowSpan="3"
+        Panel.ZIndex="9999"
+        IsLoading="{Binding IsLoading, Mode=OneWay}"
+        LoadingText="{Binding LoadingText, Mode=OneWay}"/>
     </Grid>
 </Page>

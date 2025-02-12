@@ -19,7 +19,7 @@ namespace WoodworkManagementApp.Services
     {
         private bool _disposed;
         private readonly object _watcherLock = new();
-        private readonly FileSystemWatcher _watcher;
+        private FileSystemWatcher _watcher;
         private readonly ISettingsService _settingsService;
         private readonly string _ordersPath;
         private readonly string _locksPath;
@@ -59,6 +59,13 @@ namespace WoodworkManagementApp.Services
             Directory.CreateDirectory(_ordersPath);
             Directory.CreateDirectory(_locksPath);
 
+            _watcher = new FileSystemWatcher(_ordersPath)
+            {
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+                Filter = "*.docx",
+                EnableRaisingEvents = false
+            };
+
             InitializeWatcher();
             StartLockCleanupTimer();
         }
@@ -68,13 +75,6 @@ namespace WoodworkManagementApp.Services
             lock (_watcherLock)
             {
                 if (_disposed) return;
-
-                _watcher = new FileSystemWatcher(_ordersPath)
-                {
-                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
-                    Filter = "*.docx",
-                    EnableRaisingEvents = false
-                };
 
                 _watcher.Created += OnOrderFileChanged;
                 _watcher.Changed += OnOrderFileChanged;
@@ -257,7 +257,7 @@ namespace WoodworkManagementApp.Services
                     cancellationToken.ThrowIfCancellationRequested();
                     try
                     {
-                        if (await FileValidator.ValidateWordDocumentAsync(file))
+                        if (await FileValidator.IsValidWordDocumentAsync(file))
                         {
                             var orderNumber = Path.GetFileNameWithoutExtension(file);
                             var order = await _documentService.ReadOrderDocumentAsync(orderNumber);
@@ -293,9 +293,16 @@ namespace WoodworkManagementApp.Services
                     case WatcherChangeTypes.Changed:
                         Task.Run(async () =>
                         {
-                            var order = await _documentService.ReadOrderDocumentAsync(orderNumber);
-                            RaiseOrderChanged(order, e.ChangeType == WatcherChangeTypes.Created ?
-                                OrderChangeType.Added : OrderChangeType.Modified);
+                            try
+                            {
+                                var order = await _documentService.ReadOrderDocumentAsync(orderNumber);
+                                RaiseOrderChanged(order, e.ChangeType == WatcherChangeTypes.Created ?
+                                    OrderChangeType.Added : OrderChangeType.Modified);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error processing file change for {OrderNumber}", orderNumber);
+                            }
                         });
                         break;
 
@@ -304,9 +311,9 @@ namespace WoodworkManagementApp.Services
                         break;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Log error but continue watching
+                _logger.LogError(ex, "Error handling file change event");
             }
         }
 

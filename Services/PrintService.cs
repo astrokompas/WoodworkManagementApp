@@ -93,9 +93,17 @@ namespace WoodworkManagementApp.Services
                     var xpsPath = Path.Combine(Path.GetTempPath(), $"print_{Guid.NewGuid()}.xps");
                     try
                     {
-                        using (var wordDoc = new Aspose.Words.Document(documentPath))
+                        var wordDoc = new Aspose.Words.Document(documentPath);
+                        try
                         {
                             wordDoc.Save(xpsPath, Aspose.Words.SaveFormat.Xps);
+                        }
+                        finally
+                        {
+                            if (wordDoc is IDisposable disposable)
+                            {
+                                disposable.Dispose();
+                            }
                         }
 
                         using var xpsDoc = new XpsDocument(xpsPath, FileAccess.Read);
@@ -135,7 +143,6 @@ namespace WoodworkManagementApp.Services
             {
                 try
                 {
-                    using var printServer = new PrintServer();
                     using var defaultPrintQueue = LocalPrintServer.GetDefaultPrintQueue();
                     return defaultPrintQueue.Name;
                 }
@@ -158,9 +165,9 @@ namespace WoodworkManagementApp.Services
                     {
                         Name = printQueue.Name,
                         Status = printQueue.QueueStatus.ToString(),
-                        IsOnline = printQueue.IsOnline,
-                        SupportsColor = printQueue.DefaultPrintTicket.OutputColor == OutputColor.Color,
-                        IsDuplexSupported = printQueue.DefaultPrintTicket.DuplexingMode != DuplexingMode.OneSided
+                        IsOnline = printQueue.QueueStatus == PrintQueueStatus.None,
+                        SupportsColor = printQueue.DefaultPrintTicket?.OutputColor == OutputColor.Color,
+                        IsDuplexSupported = printQueue.DefaultPrintTicket?.Duplexing != Duplexing.OneSided
                     };
                 }
                 catch (Exception ex)
@@ -169,19 +176,6 @@ namespace WoodworkManagementApp.Services
                     return null;
                 }
             });
-        }
-
-        private bool IsValidPrinter(string printerName)
-        {
-            try
-            {
-                using var printQueue = new PrintQueue(_printServer, printerName);
-                return printQueue.IsOnline;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

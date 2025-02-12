@@ -1,23 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace WoodworkManagementApp.UserControls
 {
-    public partial class LoadingSpinner : UserControl
+    public partial class LoadingSpinner : UserControl, IDisposable
     {
+        private EventHandler _renderingEventHandler;
+        private bool _disposed;
+
         public LoadingSpinner()
         {
             InitializeComponent();
@@ -30,10 +23,23 @@ namespace WoodworkManagementApp.UserControls
 
         public void Dispose()
         {
-            if (_renderingEventHandler != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
             {
-                CompositionTarget.Rendering -= _renderingEventHandler;
-                _renderingEventHandler = null;
+                if (disposing)
+                {
+                    if (_renderingEventHandler != null)
+                    {
+                        CompositionTarget.Rendering -= _renderingEventHandler;
+                        _renderingEventHandler = null;
+                    }
+                }
+                _disposed = true;
             }
         }
 
@@ -61,6 +67,11 @@ namespace WoodworkManagementApp.UserControls
         {
             get => (string)GetValue(LoadingTextProperty);
             set => SetValue(LoadingTextProperty, value);
+        }
+
+        ~LoadingSpinner()
+        {
+            Dispose(false);
         }
     }
 }

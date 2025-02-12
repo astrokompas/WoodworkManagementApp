@@ -9,7 +9,7 @@ using WoodworkManagementApp.Models;
 
 namespace WoodworkManagementApp.ViewModels
 {
-    public interface IOrdersViewModel
+    public interface IOrdersViewModel : IDisposable
     {
         ObservableCollection<Order> Orders { get; }
         ICollectionView FilteredOrders { get; }

@@ -8,6 +8,7 @@ using WoodworkManagementApp.Services;
 using WoodworkManagementApp.ViewModels;
 using System;
 using WoodworkManagementApp.Dialogs;
+using WoodworkManagementApp.Pages;
 
 
 namespace WoodworkManagementApp
@@ -113,6 +114,8 @@ namespace WoodworkManagementApp
 
         private void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<MainWindow>();
+
             services.AddSingleton<IJsonStorageService, JsonStorageService>();
             services.AddSingleton<ICartManager, CartManager>();
             services.AddSingleton<IProductService, ProductService>();
@@ -120,22 +123,35 @@ namespace WoodworkManagementApp
             services.AddSingleton<IPriceService, PriceService>();
             services.AddSingleton<IDocumentService, DocumentService>();
             services.AddSingleton<IOrdersService, OrdersService>();
-            services.AddSingleton<IOrderNumberGenerator, OrderNumberGenerator>();
             services.AddSingleton<IOrderThumbnailGenerator, OrderThumbnailGenerator>();
             services.AddSingleton<ISettingsService, SettingsService>();
             services.AddSingleton<IPrintService, PrintService>();
+            services.AddTransient<IDialogService, DialogService>();
 
             services.AddSingleton<IProductsViewModel, ProductsViewModel>();
+            services.AddTransient<PricePageViewModel>();
+            services.AddTransient<OrderDialogViewModelBase>();
+            services.AddTransient<CalcPageViewModel>();
+            services.AddTransient<IOrdersViewModel, OrdersViewModel>();
+            services.AddTransient<PrintPreviewDialogViewModel>();
+            services.AddTransient<ProductSelectionViewModel>();
+            services.AddTransient<SettingsDialogViewModel>();
+
+            services.AddTransient<PricePage>();
+            services.AddTransient<ProductsPage>();
+            services.AddTransient<CalcPage>();
+            services.AddTransient<OrdersPage>();
 
             services.AddTransient<AddOrderDialog>();
-            services.AddTransient<EditOrderDialog>();
-            services.AddTransient<PrintPreviewDialog>();
-            services.AddTransient<SettingsDialog>();
+            services.AddTransient<AddProductDialog>();
             services.AddTransient<ChooseProductDialog>();
             services.AddTransient<ConfirmationDialog>();
+            services.AddTransient<EditOrderDialog>();
             services.AddTransient<EditProductDialog>();
             services.AddTransient<MessageDialog>();
             services.AddTransient<MultiSelectProductDialog>();
+            services.AddTransient<PrintPreviewDialog>();
+            services.AddTransient<SettingsDialog>();
         }
 
     }

@@ -7,20 +7,26 @@ using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using WoodworkManagementApp.Models;
+using WoodworkManagementApp.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace WoodworkManagementApp.Services
 {
     public class SettingsService : ISettingsService
     {
+        private readonly ILogger<SettingsService> _logger;
         private readonly SemaphoreSlim _settingsLock = new SemaphoreSlim(1, 1);
         private readonly string _settingsPath;
         private readonly IJsonStorageService _jsonStorage;
         private static readonly object _folderLock = new object();
         private readonly string[] _requiredTemplates = { "OrderTemplate.docx" };
 
-        public SettingsService(IJsonStorageService jsonStorage)
+        public SettingsService(
+            IJsonStorageService jsonStorage,
+            ILogger<SettingsService> logger)
         {
             _jsonStorage = jsonStorage;
+            _logger = logger;
             _settingsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "WoodworkManagementApp",
@@ -35,8 +41,9 @@ namespace WoodworkManagementApp.Services
                 var settings = await _jsonStorage.LoadAsync<AppSettings>("settings.json");
                 return settings ?? new AppSettings();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to load settings, using defaults");
                 return new AppSettings();
             }
         }
@@ -103,7 +110,6 @@ namespace WoodworkManagementApp.Services
 
             var errors = new List<string>();
 
-            // Validate Orders Path
             if (!Directory.Exists(settings.OrdersPath))
             {
                 try
@@ -115,8 +121,6 @@ namespace WoodworkManagementApp.Services
                     errors.Add($"Cannot create orders directory: {ex.Message}");
                 }
             }
-
-            // Validate Templates Path and Required Templates
             if (!Directory.Exists(settings.TemplatesPath))
             {
                 errors.Add("Templates directory does not exist");
@@ -162,11 +166,11 @@ namespace WoodworkManagementApp.Services
                 // Validate required content controls
                 var requiredTags = new[] { "OrderNumber", "CreationDate", "CreatorName", "ReceiverName" };
                 var existingTags = mainPart.Document.Descendants<SdtElement>()
-                    .Select(sdt => sdt.SdtProperties?.GetFirstChild<Tag>()?.Val)
-                    .Where(tag => tag != null)
+                    .Select(sdt => sdt.SdtProperties?.GetFirstChild<Tag>()?.Val?.Value)
+                    .Where(tag => !string.IsNullOrEmpty(tag))
                     .ToList();
 
-                var missingTags = requiredTags.Except(existingTags).ToList();
+                var missingTags = requiredTags.Where(tag => !existingTags.Contains(tag)).ToList();
                 if (missingTags.Any())
                 {
                     throw new InvalidOperationException(

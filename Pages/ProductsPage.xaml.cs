@@ -22,10 +22,13 @@ namespace WoodworkManagementApp.Pages
 {
     public partial class ProductsPage : Page
     {
-        public ProductsPage()
+        private readonly IProductsViewModel _productsViewModel;
+
+        public ProductsPage(IProductsViewModel productsViewModel)
         {
+            _productsViewModel = productsViewModel;
             InitializeComponent();
-            DataContext = App.Services.GetRequiredService<IProductsViewModel>();
+            DataContext = _productsViewModel;
         }
     }
 }

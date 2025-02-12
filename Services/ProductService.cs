@@ -3,17 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Windows.Threading;
 using System.Windows;
-using System.ComponentModel;
 using WoodworkManagementApp.Models;
-using WoodworkManagementApp.Services;
-
 
 namespace WoodworkManagementApp.Services
 {
@@ -22,12 +18,20 @@ namespace WoodworkManagementApp.Services
         private readonly IJsonStorageService _jsonStorage;
         private const string PRODUCTS_FILE = "products.json";
         private readonly Dispatcher _dispatcher;
+        private ObservableCollection<Product> _products;
+
+        public ObservableCollection<Product> Products
+        {
+            get => _products;
+            private set => _products = value;
+        }
 
         public ProductService(IJsonStorageService jsonStorage)
         {
             _jsonStorage = jsonStorage;
             _dispatcher = Application.Current.Dispatcher;
             ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+            _products = new ObservableCollection<Product>();
         }
 
         public async Task<ObservableCollection<Product>> LoadProductsAsync()
@@ -39,12 +43,11 @@ namespace WoodworkManagementApp.Services
                     ? products.OrderBy(p => p.Order).ToList()
                     : new List<Product>();
 
-                ObservableCollection<Product> result = null;
                 await _dispatcher.InvokeAsync(() =>
                 {
-                    result = new ObservableCollection<Product>(orderedProducts);
+                    Products = new ObservableCollection<Product>(orderedProducts);
                 });
-                return result;
+                return Products;
             }
             catch (Exception ex)
             {
@@ -54,7 +57,8 @@ namespace WoodworkManagementApp.Services
 
         public Product GetProductByName(string name)
         {
-            return Products.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return Products?.FirstOrDefault(p =>
+                p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task SaveProductsAsync(IEnumerable<Product> products)
@@ -62,6 +66,10 @@ namespace WoodworkManagementApp.Services
             try
             {
                 await _jsonStorage.SaveAsync(products.ToList(), PRODUCTS_FILE);
+                await _dispatcher.InvokeAsync(() =>
+                {
+                    Products = new ObservableCollection<Product>(products);
+                });
             }
             catch (Exception ex)
             {

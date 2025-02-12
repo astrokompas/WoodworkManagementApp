@@ -8,18 +8,20 @@ using System.Diagnostics;
 using System.Windows.Navigation;
 using System.ComponentModel;
 using WoodworkManagementApp.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace WoodworkManagementApp
 {
     public partial class MainWindow : Window
     {
+        private readonly IServiceProvider _serviceProvider;
         private bool _isClosing = false;
 
-        public MainWindow()
+        public MainWindow(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-
+            _serviceProvider = serviceProvider;
             Loaded += MainWindow_Loaded;
         }
 
@@ -36,7 +38,7 @@ namespace WoodworkManagementApp
 
             if (MainFrame != null)
             {
-                MainFrame.Navigate(new PricePage());
+                MainFrame.Navigate(_serviceProvider.GetRequiredService<PricePage>());
             }
         }
 
@@ -145,20 +147,18 @@ namespace WoodworkManagementApp
         {
             if (sender is RadioButton radioButton && radioButton.Tag != null && MainFrame != null)
             {
-                switch (radioButton.Tag.ToString())
+                Page page = radioButton.Tag.ToString() switch
                 {
-                    case "Oferta":
-                        MainFrame.Navigate(new PricePage());
-                        break;
-                    case "Produkty":
-                        MainFrame.Navigate(new ProductsPage());
-                        break;
-                    case "Przelicznik":
-                        MainFrame.Navigate(new CalcPage());
-                        break;
-                    case "Zamówienia":
-                        MainFrame.Navigate(new OrdersPage());
-                        break;
+                    "Oferta" => _serviceProvider.GetRequiredService<PricePage>(),
+                    "Produkty" => _serviceProvider.GetRequiredService<ProductsPage>(),
+                    "Przelicznik" => _serviceProvider.GetRequiredService<CalcPage>(),
+                    "Zamówienia" => _serviceProvider.GetRequiredService<OrdersPage>(),
+                    _ => null
+                };
+
+                if (page != null)
+                {
+                    MainFrame.Navigate(page);
                 }
             }
         }
